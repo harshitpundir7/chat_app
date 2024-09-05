@@ -40,6 +40,7 @@ export async function registerUser(
       data: {
         email: email,
         password: hashedPassword,
+        username: "@mehoona",
         firstName: firstName,
         lastName: lastName,
       }
