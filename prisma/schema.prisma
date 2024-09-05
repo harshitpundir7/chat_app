@@ -14,16 +14,19 @@ datasource db {
 }
 
 model User {
-  id Int @unique @default(autoincrement())
-  username String @unique
-  email String @unique
+  id        Int     @unique @default(autoincrement())
+  username  String  @unique
+  email     String  @unique
   firstName String
-  lastName String?
+  lastName  String?
+  password  String
 }
+
 model Otp {
-  id Int @unique @default(autoincrement())
-  otp String 
-  email String
-  expireAt DateTime?
-  createdAt DateTime @default(now())
+  id        Int       @unique @default(autoincrement())
+  otp       String
+  email     String
+  expireAt  DateTime?
+  createdAt DateTime  @default(now())
 }
+
