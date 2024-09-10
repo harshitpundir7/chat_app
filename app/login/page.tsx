@@ -1,9 +1,8 @@
 "use client"
 import React from "react";
-import { toast } from "sonner";
 import { LoginHandler } from "@/lib/actions";
 import { MessageCircleDashed } from "lucide-react";
-
+import toast,{Toaster} from "react-hot-toast";
 
 export default function Login () {
   return (
@@ -12,21 +11,17 @@ export default function Login () {
         action={ async (formData:FormData)=>{
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
-
-        if(!email || !password) return toast.error("Please Provide all fields") 
-
-        const toastId = toast.loading("Logging in");
-        const error  = await LoginHandler(email,password);
-        
-        if(!error){
-          toast.success("Login Successfull",{
-            id: toastId,
-          });
-        }else {
-          toast.error(String(error),{
-            id:toastId
-          })
-        }
+          const toastId = toast.loading("Loading...");
+          const error  = await LoginHandler(email,password);
+          if(error){
+            toast.error(String(error),{
+              id : toastId
+            })
+          }else{
+            toast.success("Successfully loggin",{
+              id:toastId
+            })
+          }
         }}>
 
       <section className="bg-gray-50 dark:bg-gray-900">
@@ -93,6 +88,7 @@ export default function Login () {
             </div>
           </div>
         </div>
+          <Toaster/>
       </section>
       </form>
     </div>

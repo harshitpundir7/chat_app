@@ -1,24 +1,24 @@
 "use client"
-import React from "react";
+import React, { useState } from "react";
 import { MessageCircleDashed } from "lucide-react";
-import { Register } from "@/lib/actions";
-import { toast } from "sonner";
+import { isUsernameAllowed, Register } from "@/lib/actions";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function SignUp() {
-
+  const [userName,setUserName] = useState(true)
   return (
     <div>
       <form 
         action={async (formData:FormData)=>{
-        const toastId = toast.loading("Loggin in");
         const error = await Register(formData); 
-          if(!error){
-            toast.success("successfully created account",{
-              id:toastId
-            })
-          }else {
+        const loadingToast = toast.loading("Loading...");
+          if(error){
             toast.error(String(error),{
-              id:toastId
+              id:loadingToast,
+            });
+          }else{
+            toast.success("Created an Account",{
+              id:loadingToast,
             })
           }
       }}>
@@ -69,14 +69,19 @@ export default function SignUp() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="username">Username</label>
+                    <label htmlFor="username">username</label>
                     <input
                       type="text"
                       name="username"
                       id="username"
+                      onChange={async(e)=>{
+                        const usernameexist : boolean = await isUsernameAllowed(e.target.value);
+                        setUserName(usernameexist)
+                      }}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="@jhonDoe123"
+                      placeholder="jhondoe123"
                     />
+                    {userName ? "" : <p className="text-red-500 p-2">username already exists</p>}
                   </div>
                   <div>
                     <label
@@ -137,9 +142,10 @@ export default function SignUp() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800"
+                    className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                    disabled = {!userName}
                   >
-                    Create an account
+                    Verify your email
                   </button>
                   <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                     Already have an account?{" "}
@@ -155,6 +161,7 @@ export default function SignUp() {
             </div>
           </div>
         </section>
+        <Toaster/>
       </form>
     </div>
   );

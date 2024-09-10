@@ -4,14 +4,28 @@ import { CredentialsSignin, User } from "next-auth";
 import {  z } from "zod";
 import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
-import { fail } from "assert";
 
 const UserSignUpSchema = z.object({
   email : z.string().email(),
   firstName : z.string(),
   lastName : z.optional(z.string()),
   password : z.string().min(6),
+  username : z.string()
 })
+
+export async function isUsernameAllowed(username:string):Promise<boolean>{
+  try {
+    const user = await prisma.user.findUnique({
+      where:{
+        username : username,
+      },
+    });
+    if(user)return false;
+  return true
+  } catch (error) {
+    return false
+  }
+}
 
 async function getUser(email: string): Promise<User | any> {
   try {
@@ -31,14 +45,15 @@ export async function Register(data : FormData){
     email : data.get("email"),
     password : data.get("password"),
     firstName : data.get("firstName"),
-    lastName : data.get("lastName")
+    lastName : data.get("lastName"),
+    username : data.get("username")
   }
   const parsedCredential = UserSignUpSchema.safeParse(getData);
   if(!parsedCredential.success){
     return "Invalid Credentials";
   }
 
-  const { email, firstName,lastName,password } = parsedCredential.data;
+  const { email, firstName,lastName,password,username } = parsedCredential.data;
   const user = await getUser(email);
   if(user){
     return "user from this user already exists";
@@ -48,7 +63,7 @@ export async function Register(data : FormData){
 
   await prisma.user.create({
     data:{
-      username:"usernameNahiHaiBhai",
+      username:username,
       email:email,
       password: hashedPassword,
       firstName:firstName,
