@@ -1,10 +1,10 @@
 'use server';
-
 import { prisma } from "@/Client";
 import { CredentialsSignin, User } from "next-auth";
 import {  z } from "zod";
 import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
+import { fail } from "assert";
 
 const UserSignUpSchema = z.object({
   email : z.string().email(),
@@ -22,7 +22,6 @@ async function getUser(email: string): Promise<User | any> {
     });
     return user;
   } catch (error) {
-    console.error("Failed to fetch user:", error);
     throw new Error("Failed to fetch user");
   }
 }
@@ -36,13 +35,13 @@ export async function Register(data : FormData){
   }
   const parsedCredential = UserSignUpSchema.safeParse(getData);
   if(!parsedCredential.success){
-    throw new Error("Invalid Credentials" + parsedCredential.error);
+    return "Invalid Credentials";
   }
 
   const { email, firstName,lastName,password } = parsedCredential.data;
   const user = await getUser(email);
   if(user){
-    throw new Error("user from this user already exists");
+    return "user from this user already exists";
   }
 
   const hashedPassword = bcrypt.hashSync(password,10);
@@ -56,24 +55,17 @@ export async function Register(data : FormData){
       lastName:lastName as string,
     }
   })
+  return false;
 }
 
-export async function LoginHandler(data:FormData){
-  const getData = {
-    email : data.get("email"),
-    password : data.get("password"),
-  }
-  const {email, password} = getData
+export async function LoginHandler(email:string,password:string){
   try{
   await signIn("credentials",{
     email,
     password,
-    redirect : true,
-    redirectTo : "/dashboard",
   });
   } catch(error){
     const err = error as CredentialsSignin;
-    return err.message
+    return err.cause
   }
-  console.log(getData);
 }

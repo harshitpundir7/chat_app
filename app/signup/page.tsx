@@ -1,17 +1,28 @@
 "use client"
 import React from "react";
 import { MessageCircleDashed } from "lucide-react";
-import { useFormState, useFormStatus } from "react-dom";
-import { registerUser } from "@/lib/action";
+import { Register } from "@/lib/actions";
+import { toast } from "sonner";
 
 export default function SignUp() {
-  const [errorMessage, formAction] = useFormState(registerUser, undefined);
-  const { pending } = useFormStatus();
 
   return (
     <div>
-      <form action={formAction}>
-        <section className="bg-gray-50 dark:bg-gray-900">
+      <form 
+        action={async (formData:FormData)=>{
+        const toastId = toast.loading("Loggin in");
+        const error = await Register(formData); 
+          if(!error){
+            toast.success("successfully created account",{
+              id:toastId
+            })
+          }else {
+            toast.error(String(error),{
+              id:toastId
+            })
+          }
+      }}>
+        <section className="bg-gray-50 min-h-screen dark:bg-gray-900">
           <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
             <a
               href="#"
@@ -55,6 +66,16 @@ export default function SignUp() {
                       id="lastName"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                       placeholder="Doe"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="username">Username</label>
+                    <input
+                      type="text"
+                      name="username"
+                      id="username"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      placeholder="@jhonDoe123"
                     />
                   </div>
                   <div>
@@ -116,10 +137,9 @@ export default function SignUp() {
                   </div>
                   <button
                     type="submit"
-                    disabled={pending}
                     className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800"
                   >
-                    {pending ? 'Creating account...' : 'Create an account'}
+                    Create an account
                   </button>
                   <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                     Already have an account?{" "}
@@ -136,14 +156,6 @@ export default function SignUp() {
           </div>
         </section>
       </form>
-      {errorMessage && (
-        <div
-          className="mt-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
-          role="alert"
-        >
-          {errorMessage}
-        </div>
-      )}
     </div>
   );
 }

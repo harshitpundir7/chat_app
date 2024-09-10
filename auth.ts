@@ -45,7 +45,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       
       async authorize(credentials){
-        console.log("action se yahan tak ane ka safar")
         const parsedCredential = UserSchema.safeParse(credentials);
         if(!parsedCredential.success){
           throw new CredentialsSignin({
