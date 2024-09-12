@@ -3,9 +3,21 @@ import React, { useState } from "react";
 import { MessageCircleDashed } from "lucide-react";
 import { isUsernameAllowed, Register } from "@/lib/actions";
 import toast, { Toaster } from "react-hot-toast";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function SignUp() {
   const [userName,setUserName] = useState(true)
+  const [otpValue,setOtpValue] = useState();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleOpenDialog=()=>{
+    setIsDialogOpen(true);
+  }
+  const handleCloseDialog=()=>{
+    setIsDialogOpen(false);
+  }
+
   return (
     <div>
       <form 
@@ -20,6 +32,7 @@ export default function SignUp() {
             toast.success("Created an Account",{
               id:loadingToast,
             })
+            handleOpenDialog();
           }
       }}>
         <section className="bg-gray-50 min-h-screen dark:bg-gray-900">
@@ -140,6 +153,7 @@ export default function SignUp() {
                       </label>
                     </div>
                   </div>
+                  <div>
                   <button
                     type="submit"
                     className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 disabled:bg-gray-500 disabled:cursor-not-allowed"
@@ -147,6 +161,43 @@ export default function SignUp() {
                   >
                     Verify your email
                   </button>
+                    <Dialog open={isDialogOpen} onOpenChange={isDialogOpen}>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Verify Your Email</DialogTitle>
+                          <DialogDescription>
+                            enter you one time password (OTP)
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <InputOTP
+                            maxLength={4}
+                            value={otpValue}
+                            onChange={(value)=>setOtpValue(value)}
+                          >
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0}/>
+                            </InputOTPGroup>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={1}/>
+                            </InputOTPGroup>
+                            <InputOTPSeparator/>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={2}/>
+                            </InputOTPGroup>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={3}/>
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                          <button type="button" onClick={handleCloseDialog}>Verify</button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                     Already have an account?{" "}
                     <a
@@ -161,8 +212,8 @@ export default function SignUp() {
             </div>
           </div>
         </section>
-        <Toaster/>
       </form>
+      <Toaster/>
     </div>
   );
 }
