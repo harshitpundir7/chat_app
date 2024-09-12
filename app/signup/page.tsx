@@ -13,6 +13,7 @@ export default function SignUp() {
 
   const handleOpenDialog=()=>{
     setIsDialogOpen(true);
+    return true;
   }
   const handleCloseDialog=()=>{
     setIsDialogOpen(false);
