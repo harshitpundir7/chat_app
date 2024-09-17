@@ -1,41 +1,84 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import { MessageCircleDashed } from "lucide-react";
-import { isUsernameAllowed, Register } from "@/lib/actions";
+import {
+  isUsernameAllowed,
+  handleEmailValidation,
+  CreateAccount,
+} from "@/lib/actions";
+import { useForm, SubmitHandler } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { UserSignUp } from "@/lib/schema";
 
 export default function SignUp() {
-  const [userName,setUserName] = useState(true)
-  const [otpValue,setOtpValue] = useState();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<UserSignUp>();
+  const [userName, setUserName] = useState(true);
+  const [otpValue, setOtpValue] = useState();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleOpenDialog=()=>{
+  const handleOpenDialog = () => {
     setIsDialogOpen(true);
     return true;
-  }
-  const handleCloseDialog=()=>{
+  };
+
+  const handleCloseDialog = () => {
     setIsDialogOpen(false);
+  };
+  const onSubmit: SubmitHandler<UserSignUp> = async (data: UserSignUp) => {
+    const error = await handleEmailValidation(data);
+    const loadingToast = toast.loading("Loading...");
+    if (error) {
+      toast.error(String(error), {
+        id: loadingToast,
+      });
+    } else {
+      toast.success("OTP send Successfully", {
+        id: loadingToast,
+      });
+      handleOpenDialog();
+    }
+  };
+
+  async function validateOtp(userData: UserSignUp) {
+    const otp: number = Number(otpValue);
+    const errorWhileCreating = await CreateAccount(userData, otp);
+    const loadingToast = toast.loading("Loading...");
+    if (errorWhileCreating) {
+      toast.error(String(errorWhileCreating), {
+        id: loadingToast,
+      });
+    } else {
+      toast.success("Account Successfully Created", {
+        id: loadingToast,
+      });
+      handleCloseDialog();
+    }
   }
 
   return (
     <div>
-      <form 
-        action={async (formData:FormData)=>{
-        const error = await Register(formData); 
-        const loadingToast = toast.loading("Loading...");
-          if(error){
-            toast.error(String(error),{
-              id:loadingToast,
-            });
-          }else{
-            toast.success("Created an Account",{
-              id:loadingToast,
-            })
-            handleOpenDialog();
-          }
-      }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <section className="bg-gray-50 min-h-screen dark:bg-gray-900">
           <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
             <a
@@ -60,11 +103,9 @@ export default function SignUp() {
                     </label>
                     <input
                       type="text"
-                      name="firstName"
                       id="firstName"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="John"
-                      required
+                      {...register("firstname", { required: true })}
                     />
                   </div>
                   <div>
@@ -76,26 +117,33 @@ export default function SignUp() {
                     </label>
                     <input
                       type="text"
-                      name="lastName"
                       id="lastName"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Doe"
+                      {...register("lastname")}
                     />
                   </div>
                   <div>
                     <label htmlFor="username">username</label>
                     <input
                       type="text"
-                      name="username"
                       id="username"
-                      onChange={async(e)=>{
-                        const usernameexist : boolean = await isUsernameAllowed(e.target.value);
-                        setUserName(usernameexist)
-                      }}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="jhondoe123"
+                      {...register("username", {
+                        required: true,
+                        validate: async (value) => {
+                          const isAllowed = await isUsernameAllowed(value);
+                          setUserName(isAllowed);
+                          return isAllowed || "Username is already taken";
+                        },
+                      })}
                     />
-                    {userName ? "" : <p className="text-red-500 p-2">username already exists</p>}
+                    {userName ? (
+                      ""
+                    ) : (
+                      <p className="text-red-500 p-2">
+                        username already exists
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label
@@ -106,11 +154,10 @@ export default function SignUp() {
                     </label>
                     <input
                       type="email"
-                      name="email"
                       id="email"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                       placeholder="name@company.com"
-                      required
+                      {...register("email", { required: true })}
                     />
                   </div>
                   <div>
@@ -122,47 +169,21 @@ export default function SignUp() {
                     </label>
                     <input
                       type="password"
-                      name="password"
                       id="password"
                       placeholder="••••••••"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
-                      required
+                      {...register("password", { required: true })}
                     />
                   </div>
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="terms"
-                        aria-describedby="terms"
-                        type="checkbox"
-                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-                        required
-                      />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <label
-                        htmlFor="terms"
-                        className="font-light text-gray-500 dark:text-gray-300"
-                      >
-                        I accept the{" "}
-                        <a
-                          className="font-medium text-primary-600 hover:underline dark:text-primary-500"
-                          href="#"
-                        >
-                          Terms and Conditions
-                        </a>
-                      </label>
-                    </div>
-                  </div>
                   <div>
-                  <button
-                    type="submit"
-                    className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    disabled = {!userName}
-                  >
-                    Verify your email
-                  </button>
-                    <Dialog open={isDialogOpen} onOpenChange={isDialogOpen}>
+                    <button
+                      type="submit"
+                      className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                      disabled={!userName}
+                    >
+                      Verify your email
+                    </button>
+                    <Dialog open={isDialogOpen}>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                           <DialogTitle>Verify Your Email</DialogTitle>
@@ -174,26 +195,31 @@ export default function SignUp() {
                           <InputOTP
                             maxLength={4}
                             value={otpValue}
-                            onChange={(value)=>setOtpValue(value)}
+                            onChange={(value) => setOtpValue(value)}
                           >
                             <InputOTPGroup>
-                              <InputOTPSlot index={0}/>
+                              <InputOTPSlot index={0} />
                             </InputOTPGroup>
                             <InputOTPGroup>
-                              <InputOTPSlot index={1}/>
+                              <InputOTPSlot index={1} />
                             </InputOTPGroup>
-                            <InputOTPSeparator/>
+                            <InputOTPSeparator />
                             <InputOTPGroup>
-                              <InputOTPSlot index={2}/>
+                              <InputOTPSlot index={2} />
                             </InputOTPGroup>
                             <InputOTPGroup>
-                              <InputOTPSlot index={3}/>
+                              <InputOTPSlot index={3} />
                             </InputOTPGroup>
                           </InputOTP>
                         </div>
                         <DialogFooter>
                           <DialogClose asChild>
-                          <button type="button" onClick={handleCloseDialog}>Verify</button>
+                            <button
+                              type="button"
+                              onClick={handleSubmit(validateOtp)}
+                            >
+                              Verify
+                            </button>
                           </DialogClose>
                         </DialogFooter>
                       </DialogContent>
@@ -214,7 +240,7 @@ export default function SignUp() {
           </div>
         </section>
       </form>
-      <Toaster/>
+      <Toaster />
     </div>
   );
 }

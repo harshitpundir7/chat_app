@@ -24,9 +24,8 @@ model User {
 
 model Otp {
   id        Int       @unique @default(autoincrement())
-  otp       String
-  email     String
+  otp       Int
+  email     String    @unique
   expireAt  DateTime?
   createdAt DateTime  @default(now())
 }
-
