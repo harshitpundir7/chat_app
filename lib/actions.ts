@@ -40,7 +40,7 @@ export async function handleEmailValidation(data: UserSignUp) {
     return "Invalid Credentials";
   }
 
-  const { email, firstname, lastname, password, username } =
+  const { email, firstname } =
     parsedCredential.data;
   const user = await getUser(email);
   if (user) {
@@ -79,6 +79,11 @@ export async function CreateAccount(data: UserSignUp, otp: number) {
     },
   });
   if (!newAccount) return "Something went wrong";
+
+  await signIn("credentials", {
+    email,
+    password
+  });
   return;
 }
 

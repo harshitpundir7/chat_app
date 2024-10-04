@@ -25,6 +25,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { UserSignUp } from "@/lib/schema";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const {
@@ -37,6 +38,7 @@ export default function SignUp() {
   const [otpValue, setOtpValue] = useState();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const router = useRouter();
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
     return true;
@@ -73,6 +75,7 @@ export default function SignUp() {
         id: loadingToast,
       });
       handleCloseDialog();
+      router.push("/dashboard");
     }
   }
 

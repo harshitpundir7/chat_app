@@ -1,13 +1,12 @@
 import NextAuth, { CredentialsSignin, User } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
 import { prisma } from "./Client";
 import bcrypt from "bcryptjs";
 
 const UserSchema = z.object({
-  email : z.string().email(),
-  password : z.string().min(6),
+  email: z.string().email(),
+  password: z.string().min(6),
 })
 
 //get users func
@@ -27,48 +26,57 @@ async function getUser(email: string): Promise<User | any> {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    GoogleProvider({
-      clientId:"adfadf",
-      clientSecret:"fadkfadfa",
-    }),
     Credentials({
-      name : "Credentials",
-      credentials : {
-        email:{
-          label:"Email",
-          type:"email",
+      name: "Credentials",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
         },
-        password:{
-        label:"Password",
-        type : "password",
-      }
+        password: {
+          label: "Password",
+          type: "password",
+        }
       },
-      
-      async authorize(credentials){
+
+      async authorize(credentials) {
         const parsedCredential = UserSchema.safeParse(credentials);
-        if(!parsedCredential.success){
-          throw new CredentialsSignin({
-            cause : "Invalid input"
+        if (!parsedCredential.success) {
+          throw new CredentialsSignin ({
+            cause: "Invalid input"
           })
         }
-        const {email,password} = parsedCredential.data;
+        const { email, password } = parsedCredential.data;
         const user = await getUser(email);
-        if(!user) {
+        if (!user) {
           throw new CredentialsSignin({
-            cause : "User doesn't exists"
+            cause: "User doesn't exists"
           })
         }
-        const passwordMatch = await bcrypt.compare(password,user.password);
-        if(!passwordMatch){
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
           throw new CredentialsSignin({
-            cause : "Incorrect password"
+            cause: "Incorrect password"
           })
         }
         return user;
-    }
+      }
     }),
   ],
-  pages:{
-    signIn : '/login',
+  pages: {
+    signIn: '/login',
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = auth?.user;
+      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false; // Redirect unauthenticated users to login page
+      } else if (isLoggedIn) {
+        return Response.redirect(new URL('/dashboard', nextUrl));
+      }
+      return true;
+    }
   }
 });
