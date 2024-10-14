@@ -59,7 +59,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             cause: "Incorrect password"
           })
         }
-        return user;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        };
       }
     }),
   ],
@@ -67,6 +71,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/login',
   },
   callbacks: {
+    async jwt({token,user}) {
+      if(user){
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = auth?.user;
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
@@ -78,5 +94,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true;
     }
-  }
+  },
+  session: {
+    strategy: "jwt",
+  },
+
 });
