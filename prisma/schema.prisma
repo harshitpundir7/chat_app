@@ -14,18 +14,50 @@ datasource db {
 }
 
 model User {
-  id        Int     @unique @default(autoincrement())
-  username  String  @unique
-  email     String  @unique
-  firstName String
-  lastName  String?
-  password  String
+  id           Int            @id @unique @default(autoincrement())
+  username     String         @unique
+  email        String         @unique
+  firstName    String
+  lastName     String?
+  password     String
+  avatar       String?        @default("https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png")
+  messages     Message[]
+  chatRooms    ChatRoom[]     @relation("UsersInChatRoom")
+  ChatRoomUser ChatRoomUser[]
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  ChatRoom   ChatRoom @relation(fields: [ChatRoomId], references: [id])
+  ChatRoomId String
+}
+
+model ChatRoom {
+  id           String         @id @default(uuid())
+  name         String?
+  isGroup      Boolean        @default(false)
+  users        User[]         @relation("UsersInChatRoom")
+  messages     Message[]
+  createdAt    DateTime       @default(now())
+  ChatRoomUser ChatRoomUser[]
 }
 
 model Otp {
-  id        Int       @unique @default(autoincrement())
+  id        Int      @unique @default(autoincrement())
   otp       Int
-  email     String    @unique
-  expireAt  DateTime?
-  createdAt DateTime  @default(now())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ChatRoomUser {
+  ChatRoom   ChatRoom @relation(fields: [ChatRoomId], references: [id])
+  ChatRoomId String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+
+  @@id([ChatRoomId, userId])
 }
