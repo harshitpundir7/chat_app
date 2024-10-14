@@ -24,9 +24,6 @@ export async function POST(req: NextRequest) {
               in: usersId,
             },
           },
-          // some :{
-          //   ChatRoomId : {equals : null},
-          // }
         },
       },
       include :{ChatRoomUser : true}
