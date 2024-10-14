@@ -12,3 +12,37 @@ export type EmailInputData = {
   otp: number;
 };
 export type UserSignUp = z.infer<typeof UserSignUpSchema>;
+
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  avatar: string | null;
+  firstName: string ;
+  lastName: string | null;
+}
+
+export interface ChatRoomUser {
+  user: User;
+}
+
+
+export interface ChatRoom {
+  id: string;
+  name: string | null;
+  isGroup: boolean;
+  createdAt: Date;
+  ChatRoomUser: ChatRoomUser[];
+  users: User[]; 
+}
+
+export interface Message {
+  from: number;
+  to: number;
+  content: string;
+}
+
+export interface ServerMessage {
+  message: Message;
+  roomId: string;
+}
