@@ -1,7 +1,9 @@
 import { createClient } from "@redis/client";
 import { Pool } from "pg";
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from "dotenv";
 
+dotenv.config();
 const redisClient = createClient();
 
 interface Message {
@@ -15,13 +17,12 @@ interface ServerMessage {
   roomId: string;
 }
 
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set in the .env file');
+}
+
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'mysecretpassword',
-  port: 5432,
-  // ssl: { rejectUnauthorized: false },
+  connectionString : process.env.DATABASE_URL
 });
 
 async function worker() {
@@ -32,7 +33,6 @@ async function worker() {
     while (true) {
       const response = await redisClient.brPop("message", 0);
       const data: ServerMessage = JSON.parse(response?.element as string);
-      const msg ="";
       // uploading msg
       try {
         const result = await pgClient.query(
