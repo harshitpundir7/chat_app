@@ -3,8 +3,10 @@ import React from "react";
 import { LoginHandler } from "@/lib/actions";
 import { MessageCircleDashed } from "lucide-react";
 import toast,{Toaster} from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Login () {
+  const router = useRouter();
   return (
     <div>
       <form 
@@ -21,6 +23,7 @@ export default function Login () {
             toast.success("Successfully loggin",{
               id:toastId
             })
+            router.push("/dashboard");
           }
         }}>
 

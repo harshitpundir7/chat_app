@@ -21,12 +21,20 @@ export async function isUsernameAllowed(username: string): Promise<boolean> {
   }
 }
 
-async function getUser(email: string): Promise<User | any> {
+export async function getUser(email: string): Promise<User | any> {
   try {
     const user = await prisma.user.findUnique({
       where: {
         email: email,
       },
+      select : {
+        id:true,
+        email:true,
+        firstName:true,
+        lastName:true,
+        avatar:true,
+        username:true,
+      }
     });
     return user;
   } catch (error) {

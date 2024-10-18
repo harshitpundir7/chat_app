@@ -3,8 +3,22 @@ import { Pool } from "pg";
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from "dotenv";
 
+
 dotenv.config();
-const redisClient = createClient();
+
+const redisUrl = process.env.NEXT_PUBLIC_REDIS_URL;
+const redisPassword = process.env.NEXT_REDIS_PASSWORD;
+if(redisPassword==undefined && redisUrl==undefined){
+  throw new Error("redis url or password not set in env file");
+}
+
+const redisClient = createClient({
+    password: redisPassword,
+    socket: {
+        host: redisUrl,
+        port: 12647
+    }
+});
 
 interface Message {
   from: number;
