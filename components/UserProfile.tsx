@@ -33,11 +33,11 @@ const UserProfile = () => {
   }
 
   const handleProfile = async()=>{
-    router.push('/profile');
+    router.push('/user/profile');
   }
 
   const handleSetting = async()=>{
-    router.push('/setting');
+    router.push('/user/setting');
   }
 
   const handleLogout = async () => {
@@ -70,7 +70,7 @@ const UserProfile = () => {
         <DropdownMenuItem onClick={handleProfile} >
           Profile
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleSetting}  >
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />

@@ -38,6 +38,7 @@ const ChattingUser = ({ selectedUser, selectedRoom }: { selectedUser: User | nul
       console.log("websocker url undefined from env ");
       return
     }
+    console.log(process.env.NEXT_PUBLIC_WEBSOCKET_URL)
     const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKET_URL);
 
     socket.onopen = () => {
