@@ -33,16 +33,28 @@ const server = http_1.default.createServer((req, res) => {
     res.end("hi there");
 });
 const wss = new ws_1.WebSocketServer({ server });
+const room = new Event("room");
+const users = [];
 let userCount = 0;
 // Store clients by room
 const rooms = {};
 wss.on('connection', function connection(ws) {
     // Error handling
     ws.on('error', console.error);
+    ws.on("room", () => {
+        console.log("room event trigger");
+    });
+    // ws.emit("room", () => {
+    //   console.log("room event trigger")
+    // })
+    // ws.addEventListener("message" , () => {
+    //   console.log("room event trigger")
+    // })
     // Room variable to store the room of this client
     let currentRoom = null;
     ws.on('message', function message(data) {
         const message = JSON.parse(data);
+        const userId = message.myId;
         if (message.type === 'join') {
             const roomId = message.roomId;
             if (currentRoom && rooms[currentRoom]) {
@@ -59,8 +71,23 @@ wss.on('connection', function connection(ws) {
                 rooms[roomId] = new Set();
             }
             rooms[roomId].add(ws);
-            ws.send(`You joined room: ${currentRoom}`);
+            if (!users.find((id) => id === userId)) {
+                users.push(userId);
+            }
+            ws.send(JSON.stringify({ message: `You joined room: ${currentRoom}` }));
             ;
+            const roomClients = rooms[currentRoom];
+            if (roomClients) {
+                roomClients.forEach((client) => {
+                    if (client !== ws && client.readyState === ws_1.default.OPEN) {
+                        client.send(JSON.stringify({
+                            roomId: currentRoom,
+                            message: "",
+                            currentRoom: users
+                        }));
+                    }
+                });
+            }
         }
         else if (message.type === 'message' && currentRoom) {
             const roomClients = rooms[currentRoom];
@@ -77,7 +104,7 @@ wss.on('connection', function connection(ws) {
         }
     });
     console.log("user connected", ++userCount);
-    ws.send("hello message from server");
+    ws.send(JSON.stringify({ message: "hello message from server" }));
 });
 server.listen(8080, () => {
     console.log(new Date() + ` Server is listening on port 8080`);

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
 import { createOtp } from "./actions/OtpGenerate";
 import { deleteOtp, isOtpExist, isOtpValid } from "./actions/OtpActions";
-import { UserSignUp, UserSignUpSchema } from "./schema";
+import { UserSignUp, UserSignUpSchema } from "./types";
 
 export async function isUsernameAllowed(username: string): Promise<boolean> {
   try {
@@ -27,13 +27,13 @@ export async function getUser(email: string): Promise<User | any> {
       where: {
         email: email,
       },
-      select : {
-        id:true,
-        email:true,
-        firstName:true,
-        lastName:true,
-        avatar:true,
-        username:true,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        username: true,
       }
     });
     return user;

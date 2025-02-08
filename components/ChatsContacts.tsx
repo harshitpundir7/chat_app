@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ChatWithOtherUser } from '@/lib/actions/ChatWithUser';
-import { ChatRoom, User } from '@/lib/schema';
+import { ChatRoom, User } from '@/lib/types';
 
 interface ChatsContactsProps {
   setSelectedUser: (user: User) => void;
   selectedUser: User | null;
-  setSelectedRoom : (chatRoomId : string) => void;
+  setSelectedRoom: (chatRoomId: string) => void;
+  ws: WebSocket,
 }
 
-function ChatsContacts({ setSelectedUser, selectedUser,setSelectedRoom  }: ChatsContactsProps) {
+function ChatsContacts({ setSelectedUser, selectedUser, setSelectedRoom, ws }: ChatsContactsProps) {
   const [chatRoomsWithOtherUsers, setChatRoomsWithOtherUsers] = useState<ChatRoom[]>([]);
 
   const fetchChatRooms = useCallback(async () => {
@@ -23,22 +24,25 @@ function ChatsContacts({ setSelectedUser, selectedUser,setSelectedRoom  }: Chats
   }, []);
   useEffect(() => {
     fetchChatRooms();
-  }, [fetchChatRooms,selectedUser]);
+  }, [fetchChatRooms, selectedUser]);
 
-  const handleClick = useCallback((user: User,chatRoomId : string) => {
+  const handleClick = useCallback((user: User, chatRoomId: string) => {
     setSelectedUser(user);
     setSelectedRoom(chatRoomId);
-  }, [setSelectedUser,setSelectedRoom]);
+    ws.send(JSON.stringify({
+      type: "join",
+      roomId: chatRoomId
+    }))
+  }, [setSelectedUser, setSelectedRoom, ws]);
 
   return (
     <div className="overflow-y-auto h-full">
       {chatRoomsWithOtherUsers.map(chatroom => (
-        <div 
-          key={chatroom.id} 
-          onClick={() => handleClick(chatroom.users[0],chatroom.id)} 
-          className={`flex items-center p-4 cursor-pointer hover:bg-zinc-800 transition-colors duration-200 ${
-            selectedUser?.id === chatroom.users[0].id ? 'bg-zinc-800' : 'bg-zinc-900'
-          }`}
+        <div
+          key={chatroom.id}
+          onClick={() => handleClick(chatroom.users[0], chatroom.id)}
+          className={`flex items-center p-4 cursor-pointer hover:bg-zinc-800 transition-colors duration-200 ${selectedUser?.id === chatroom.users[0].id ? 'bg-zinc-800' : 'bg-zinc-900'
+            }`}
         >
           <Avatar className='bg-zinc-800'>
             <AvatarImage src={chatroom.users[0].avatar as string} alt={chatroom.users[0].username} />

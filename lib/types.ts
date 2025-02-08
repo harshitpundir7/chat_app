@@ -38,7 +38,7 @@ export interface ChatRoom {
 
 export interface Message {
   from: number;
-  to: number;
+  //to: number;
   content: string;
 }
 

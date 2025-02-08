@@ -6,17 +6,18 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const redisUrl = process.env.NEXT_PUBLIC_REDIS_URL;
-const redisPassword = process.env.NEXT_REDIS_PASSWORD;
+const redisUrl = process.env.NEXT_PUBLIC_REDIS_URL!;
+const redisPassword = process.env.NEXT_REDIS_PASSWORD!;
 if(redisPassword==undefined && redisUrl==undefined){
   throw new Error("redis url or password not set in env file");
 }
 
 const redisClient = createClient({
+    username : "default",
     password: redisPassword,
     socket: {
         host: redisUrl,
-        port: 12647
+        port: 12207
     }
 });
 

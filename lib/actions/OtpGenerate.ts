@@ -2,7 +2,7 @@ import { prisma } from "@/Client";
 import { EmailTemplate } from "@/components/EmailTemplate";
 import { Resend } from "resend";
 import { deleteOtp, isOtpExist } from "./OtpActions";
-import { EmailInputData } from "../schema";
+import { EmailInputData } from "../types";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

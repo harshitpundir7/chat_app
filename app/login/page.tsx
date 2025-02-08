@@ -1,98 +1,129 @@
 "use client"
-import React from "react";
+import React, { useState } from "react";
 import { LoginHandler } from "@/lib/actions";
 import { MessageCircleDashed } from "lucide-react";
-import toast,{Toaster} from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { BorderBeam } from "@/components/border-beam";
 
-export default function Login () {
+enum activeInput {
+  nothing,
+  email,
+  password,
+}
+
+export default function Login() {
   const router = useRouter();
+  const [focused, setFocused] = useState<activeInput>(0);
   return (
     <div>
-      <form 
-        action={ async (formData:FormData)=>{
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
+      <form
+        action={async (formData: FormData) => {
+          const email = formData.get("email") as string;
+          const password = formData.get("password") as string;
           const toastId = toast.loading("Loading...");
-          const error  = await LoginHandler(email,password);
-          if(error){
-            toast.error(String(error),{
-              id : toastId
+          const error = await LoginHandler(email, password);
+          if (error) {
+            toast.error(String(error), {
+              id: toastId
             })
-          }else{
-            toast.success("Successfully loggin",{
-              id:toastId
+          } else {
+            toast.success("Successfully loggin", {
+              id: toastId
             })
             router.push("/dashboard");
           }
         }}>
 
-      <section className="bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-          <div
-            className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
-          >
-            <MessageCircleDashed size={50} />
-            Mingle
-          </div>
-          <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                Welcome Back!
-              </h1>
+        <section className="bg-DarkIndigo text-gray-300/90 ">
+          <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+            <div
+              className=" items-center mb-6 text-2xl font-semibold bg-gradient-to-r from-MineBlue via-MinePink to-MineYellow bg-clip-text text-transparent "
+            >
+              Back for More? We Knew You’d Return!
+            </div>
+            <div className="w-full bg-white/5 border-gray-800/30 rounded-lg md:mt-0 sm:max-w-md xl:p-0 ">
+              <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
+                <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+                  Welcome Back!
+                </h1>
 
                 <div>
                   <label
                     htmlFor="email"
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    className="block mb-2 text-sm font-medium "
                   >
                     Your email
                   </label>
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="name@company.com"
-                    required
-                  />
+                  <div className="relative rounded-lg w-full" >
+                    {focused == 1 ?
+                      <BorderBeam
+                        size={90}
+                        delay={focused}
+                        className="absolute z-10"
+                      /> : ""
+                    }
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      className="bg-white/5 py-3 backdrop-blur-md placeholder-white/20 px-4 w-full rounded-lg focus:outline-none focus:border-white/20 border"
+                      placeholder="name@company.com"
+                      onFocus={() => setFocused(1)}
+                      onBlur={() => setFocused(0)}
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
                   <label
                     htmlFor="password"
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    className="block mb-2 text-sm font-medium "
                   >
                     Password
                   </label>
-                  <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    placeholder="••••••••"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
-                    required
-                  />
+                  <div className="relative rounded-lg w-full" >
+                    {focused == 2 ?
+                      <BorderBeam
+                        size={90}
+                        delay={focused}
+                        className="absolute z-10"
+                      />
+                      : ""
+                    }
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      placeholder="••••••••"
+                      className="rounded-lg bg-white/5 px-4 py-3 w-full backdrop-blur-md focus:outline-none focus:border-white/20 border placeholder-white/20"
+                      required
+                      onBlur={() => setFocused(0)}
+                      onFocus={() => setFocused(2)}
+                    />
+                  </div>
                 </div>
                 <button
                   type="submit"
-                  className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800"
+                  className="w-full text-white  font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-gradient-to-r from-MineBlue via-MinePink to-MineDarkYellow"
                 >
                   Login
                 </button>
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                  Don't Have Any Account{" "}
-                  <a
+                  Don't Have Any Account?{" "}
+                  <Link
                     href="/signup"
-                    className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                    className="font-medium text-primary-600 hover:underline hover:text-white"
                   >
                     Signup
-                  </a>
+                  </Link>
                 </p>
+              </div>
             </div>
           </div>
-        </div>
-          <Toaster/>
-      </section>
+          <Toaster />
+        </section>
       </form>
     </div>
   );

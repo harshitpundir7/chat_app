@@ -1,6 +1,6 @@
 "use server";
 import { createClient } from "redis";
-import { Message } from "../schema";
+import { Message } from "../types";
 
 const redisUrl = process.env.NEXT_PUBLIC_REDIS_URL;
 const redisPassword = process.env.NEXT_REDIS_PASSWORD;

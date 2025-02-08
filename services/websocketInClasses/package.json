@@ -1,0 +1,20 @@
+{
+  "name": "websocketinclasses",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

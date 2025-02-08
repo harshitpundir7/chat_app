@@ -1,5 +1,5 @@
 import { getUser } from '@/lib/actions';
-import { User } from '@/lib/schema';
+import { User } from '@/lib/types';
 import { signOut, useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +12,7 @@ const UserProfile = () => {
   const { data: session, status } = useSession();
   const [userData, setUserData] = useState<User | null>(null);
   const router = useRouter();
-  
+
   useEffect(() => {
     if (!(status === "authenticated" && session?.user?.email)) {
       return;
@@ -32,17 +32,17 @@ const UserProfile = () => {
     );
   }
 
-  const handleProfile = async()=>{
+  const handleProfile = async () => {
     router.push('/user/profile');
   }
 
-  const handleSetting = async()=>{
+  const handleSetting = async () => {
     router.push('/user/setting');
   }
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
-    router.push('/login'); 
+    router.push('/login');
   };
 
   if (status !== "authenticated") {
