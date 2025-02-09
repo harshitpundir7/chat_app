@@ -1,28 +1,44 @@
 "use client";
-import ChatsContacts from '@/components/ChatsContacts';
-import SearchUsername from '@/components/SearchUsername';
-import UserProfile from '@/components/UserProfile';
-import { Message, User } from '@/lib/types';
+import { ChatRoom, Message, User } from '@/lib/types';
 import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import ChattingUser from '@/components/ChattingUser';
 import "../globals.css"
-import { Cloud, MessageCircle, MessagesSquare, Plus, Radio, Settings, UserIcon, } from 'lucide-react';
+import { MessagesSquare, } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ChatSidebar from '@/components/ChatSidebar';
+import { ChatWithOtherUser } from '@/lib/actions/ChatWithUser';
+import ConversationalPanel from '@/components/ConversationalPanel';
+
+interface ExtendedUser extends User {
+  isOnline: boolean;
+}
+
+interface ExtendedChatRoom extends ChatRoom {
+  users: ExtendedUser[];
+}
 
 const Dashboard = () => {
   const { data: session, status } = useSession();
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [activeChat, setActiveChat] = useState<ExtendedChatRoom>();
   const [selectedRoom, setSelectedRoom] = useState<string>();
   const [ws, setWs] = useState<WebSocket>();
   const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
   const [incomingMessage, setIncomingMessage] = useState<Message>()
   const [activeButton, setActiveButton] = useState<string>("message");
+  const [chatsData, setChatsData] = useState<{ groupsData: ChatRoom[]; singleChatData: ChatRoom[] }>();
+
+  //get chat data
+  async function getChatData() {
+    const result = await ChatWithOtherUser();
+    setChatsData(result);
+  }
 
   useEffect(() => {
     const webSocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8080/';
+
+    getChatData();
+
 
     if (!webSocketUrl) {
       console.error("WebSocket URL is not defined");
@@ -37,7 +53,7 @@ const Dashboard = () => {
       if (session?.user?.id) {
         socket.send(JSON.stringify({
           type: "connect",
-          userId: session.user.id
+          userId: parseInt(session.user.id)
         }));
       }
     };
@@ -67,13 +83,14 @@ const Dashboard = () => {
     };
   }, [session?.user?.id, status]);
 
+  //handle messsage
   function handleMessage(data: any) {
     switch (data.type) {
       case "connectedUsers": setOnlineUsers(data.message)
         break;
       case "connection": console.log("connected to server");
         break;
-      case "join": console.log("connection to room successfully established")
+      case "join": console.log('connection to room successfully established')
         break;
       case "message": setIncomingMessage(data.message)
         break;
@@ -82,10 +99,10 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen text-gray-300/90 bg-DarkNavy">
+    <div className="flex h-screen text-gray-300/90 overflow-hidden bg-DarkNavy">
       <main className='h-screen w-full' >
         <ResizablePanelGroup direction='horizontal' >
-          <ResizablePanel className='' defaultSize={20} >
+          <ResizablePanel className='' minSize={15} maxSize={30} defaultSize={20} >
             <div className='' >
               <nav className='flex justify-between items-center py-6 px-4 border-b border-white/10 ' >
                 <div className='flex h-8 w-8 bg- space-x-2 items-center' >
@@ -106,70 +123,18 @@ const Dashboard = () => {
               </nav>
               {/* sub-section sidebar */}
               <div className='h-screen ' >
-                <ChatSidebar />
+                <ChatSidebar chatsData={chatsData!} ws={ws!} userId={parseInt(session?.user?.id!)} setActiveChat={setActiveChat} activeChat={activeChat!} onlineUsers={onlineUsers} />
               </div>
             </div>
 
           </ResizablePanel>
           <ResizableHandle className='bg-white/10 text-white/10' />
           <ResizablePanel className='' defaultSize={80} >
-            <div className='' >
-              <div className='w-full border-b border-white/10 px-6 py-7' >
-                hello
-              </div>
-              {/* chatting section */}
-              <div className='h-screen bg-DarkIndigo w-full ' >
-
-                <ResizablePanelGroup direction="horizontal" >
-                  <ResizablePanel defaultSize={100} >
-                  </ResizablePanel>
-                  <ResizableHandle className='bg-white/10' />
-                  <ResizablePanel defaultSize={0} >
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-
-
-              </div>
-            </div>
+            <ConversationalPanel ws={ws!} userId={parseInt(session?.user?.id!)} activeChat={activeChat!} incomingMessage={incomingMessage!} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </main >
-      {/* <header className="flex items-center justify-between p-4 border-b border-white/10 bg-darkIndigo shadow-sm"> */}
-      {/*   <h1 className="text-3xl font-bold text-white "> */}
-      {/*     <MessagesSquare /> */}
-      {/*   </h1> */}
-      {/*   <div className="flex items-center space-x-4"> */}
-      {/*     <SearchUsername setSelectedUser={setSelectedUser} setSelectedRoom={setSelectedRoom} /> */}
-      {/*     <UserProfile /> */}
-      {/*   </div> */}
-      {/* </header> */}
-      {/* <main className="flex-1 overflow-hidden"> */}
-      {/*   <ResizablePanelGroup direction='horizontal'> */}
-      {/*     <ResizablePanel defaultSize={25} minSize={20} maxSize={40}> */}
-      {/*       <div className="h-full border-r bg-darkIndigo/50"> */}
-      {/*         <ChatsContacts */}
-      {/*           selectedUser={selectedUser} */}
-      {/*           setSelectedUser={setSelectedUser} */}
-      {/*           setSelectedRoom={setSelectedRoom} */}
-      {/*           ws={ws as WebSocket} */}
-      {/*         /> */}
-      {/*       </div> */}
-      {/*     </ResizablePanel> */}
-      {/*     <ResizableHandle withHandle /> */}
-      {/*     <ResizablePanel defaultSize={75}> */}
-      {/*       <div className="h-full bg-darkIndigo/30"> */}
-      {/*         <ChattingUser */}
-      {/*           incomingMessage={incomingMessage!} */}
-      {/*           selectedUser={selectedUser} */}
-      {/*           selectedRoom={selectedRoom} */}
-      {/*           ws={ws as WebSocket} */}
-      {/*           onlineUsers={onlineUsers} */}
-      {/*         /> */}
-      {/*       </div> */}
-      {/*     </ResizablePanel> */}
-      {/*   </ResizablePanelGroup> */}
-      {/* </main> */}
-    </div >
+    </div>
   );
 };
 

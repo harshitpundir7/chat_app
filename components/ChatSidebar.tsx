@@ -1,61 +1,73 @@
 import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Hash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useSession } from "next-auth/react";
-import { ChatWithOtherUser } from "@/lib/actions/ChatWithUser";
+import { ChatRoom, User } from "@/lib/types";
 
-type Group = {
-  id: number;
-  name: string;
-  unread: number;
-};
+interface ChatSidebarProps {
+  chatsData: { groupsData: ChatRoom[]; singleChatData: ChatRoom[] };
+  onlineUsers: number[];
+  setActiveChat: React.Dispatch<React.SetStateAction<ExtendedChatRoom | undefined>>
+  activeChat: ExtendedChatRoom
+  ws: WebSocket
+  userId: number
+}
 
-type DirectMessage = {
-  id: number;
-  name: string;
-  status: "online" | "offline";
-  unread: number,
-};
+interface ExtendedUser extends User {
+  isOnline: boolean;
+}
 
-type SidebarSectionProps<T> = {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  items: T[];
-  renderItem: (item: T) => React.ReactNode;
-};
+interface ExtendedChatRoom extends ChatRoom {
+  users: ExtendedUser[];
+}
 
-
-const ChatSidebar: React.FC = () => {
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setActiveChat, userId, activeChat, ws }) => {
   const [groupChat, setGroupChat] = useState<boolean>(false);
   const [singleChat, setSingleChat] = useState<boolean>(false);
-  const { data: session, status } = useSession()
+  const [updatedChatsData, setUpdatedChatsData] = useState<{ groupsData: ExtendedChatRoom[]; singleChatData: ExtendedChatRoom[]; }>();
+  const [selectedChatId, setSelectedChatId] = useState<string>()
+
 
   useEffect(() => {
     const value = localStorage.getItem("ChatSidebar");
     if (value) {
-      const data = JSON.parse(value)
-      setGroupChat(data.groupChat)
-      setSingleChat(data.singleChat)
+      const data = JSON.parse(value);
+      setGroupChat(data.groupChat);
+      setSingleChat(data.singleChat);
     }
 
-    async function getChatData() {
-      const data = await ChatWithOtherUser()
-      console.log(data);
+    if (chatsData) {
+      const updateRoomUsers = (chat: ChatRoom): ExtendedChatRoom => ({
+        ...chat,
+        users: chat.users.map((user) => ({
+          ...user,
+          isOnline: onlineUsers.includes(user.id),
+        })),
+      });
+
+      const updatedData = {
+        groupsData: chatsData.groupsData.map(updateRoomUsers),
+        singleChatData: chatsData.singleChatData.map(updateRoomUsers),
+      };
+
+      setUpdatedChatsData(updatedData);
     }
-    getChatData();
 
-  }, [])
+  }, [onlineUsers, chatsData]);
 
-  const groups: Group[] = [
-    { id: 1, name: "group-one", unread: 3 },
-    { id: 2, name: "group-two", unread: 0 },
-  ];
+  const finalChatsData = updatedChatsData
+  if (!finalChatsData) return null;
 
-  const directMessages: DirectMessage[] = [
-    { id: 1, name: "John Doe", status: "online", unread: 0 },
-    { id: 2, name: "Jane Smith", status: "offline", unread: 0 },
-  ];
+  const { groupsData, singleChatData } = finalChatsData;
+
+  const groups =
+    groupsData && groupsData.length > 0
+      ? groupsData.map((group) => ({
+        id: group.id,
+        name: group.name || "Unnamed Group",
+        unread: 0,
+        users: group.users,
+      }))
+      : [];
 
   const SidebarSection = <T,>({
     title,
@@ -63,35 +75,37 @@ const ChatSidebar: React.FC = () => {
     onToggle,
     items,
     renderItem,
-  }: SidebarSectionProps<T>) => (
+  }: {
+    title: string;
+    isOpen: boolean;
+    onToggle: () => void;
+    items: T[];
+    renderItem: (item: T) => React.ReactNode;
+  }) => (
     <div className="space-y-2 mb-2">
       <button
         onClick={onToggle}
-        className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300/30 rounded-lg over:bg-white/5 transition-colors duration-200"
+        className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300/30 rounded-lg hover:bg-white/5 transition-colors duration-200"
       >
-        {isOpen ? (
-          <ChevronUp className="h-4 w-4 " />
-        ) : (
-          <ChevronDown className="h-4 w-4 " />
-        )}
+        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         <span className="text-gray-300/40 font-medium flex-1 text-left">{title}</span>
       </button>
-
       {isOpen && <div className="space-y-1 pl-4">{items.map(renderItem)}</div>}
     </div>
   );
 
   return (
-    <div className="px-4 py-2 space-y-4 ">
-      <div className="flex w-full items-center justify-between py-3 px-2 cursor-pointer rounded-lg ">
+    <div className="px-4 py-2 space-y-4">
+      <div className="flex w-full items-center justify-between py-3 px-2 cursor-pointer rounded-lg">
         <h2 className="text-white font-semibold">Chat</h2>
-        <button className="hover:bg-white/10 px-4 rounded-lg py-2 text-white/50 hover:text-white transition-all duration-300 cursor-pointer ">
-          <span className="">+</span>
+        <button className="hover:bg-white/10 px-4 rounded-lg py-2 text-white/50 hover:text-white transition-all duration-300 cursor-pointer">
+          <span>+</span>
         </button>
       </div>
 
-      <div className="">
-        <SidebarSection<Group>
+      {/* Groups Section */}
+      {groups.length > 0 && (
+        <SidebarSection
           title="Groups"
           isOpen={groupChat}
           onToggle={() => {
@@ -100,49 +114,64 @@ const ChatSidebar: React.FC = () => {
             localStorage.setItem("ChatSidebar", JSON.stringify({ groupChat: newGroupChat, singleChat }));
           }}
           items={groups}
-          renderItem={(group) => (
+          renderItem={(group: { id: string; name: string; unread: number; users: ExtendedUser[] }) => (
             <button
               key={group.id}
-              className="w-full flex items-center px-3 py-2 rounded-md hover:bg-white/5 text-gray-300/30 hover:text-white transition-colors duration-200"
+              onClick={() => {
+                setSelectedChatId(group.id)
+                setActiveChat(groupsData.find(g => g.id === group.id))
+                ws.send(JSON.stringify({ type: "join", roomId: group.id }))
+              }}
+              className={`w-full flex items-center px-3 py-2 rounded-md hover:bg-white/5 text-gray-300/50 ${activeChat?.id === group.id && "bg-white/10"}  hover:text-white transition-colors duration-200`}
             >
-              <Hash className={`h-4 w-4 mr-2 ${group.unread > 0 && "text-white"} `} />
-              <span className={`flex-1 text-left ${group.unread > 0 && "text-white"} `}>{group.name}</span>
+              <Hash className={`h-4 w-4 mr-2 ${group.unread > 0 ? "text-white" : ""}`} />
+              <span className={`flex-1 text-left ${group.unread > 0 ? "text-white" : ""}`}>{group.name}</span>
               {group.unread > 0 && (
-                <span className=" bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                  {group.unread}
-                </span>
+                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">{group.unread}</span>
               )}
             </button>
           )}
         />
+      )}
 
-        <SidebarSection<DirectMessage>
-          title="Direct Messages"
-          isOpen={singleChat}
-          onToggle={() => {
-            const newSingleChat = !singleChat;
-            setSingleChat(newSingleChat)
-            localStorage.setItem("ChatSidebar", JSON.stringify({ groupChat, singleChat: newSingleChat }));
-          }}
-          items={directMessages}
-          renderItem={(dm) => (
+      {/* Direct Messages Section */}
+      <SidebarSection
+        title="Direct Messages"
+        isOpen={singleChat}
+        onToggle={() => {
+          const newSingleChat = !singleChat;
+          setSingleChat(newSingleChat);
+          localStorage.setItem("ChatSidebar", JSON.stringify({ groupChat, singleChat: newSingleChat }));
+        }}
+        items={singleChatData}
+        renderItem={(dm: ExtendedChatRoom) => {
+          const otherUser = dm.users.filter(user => user.id != userId)[0];
+          return (
             <button
               key={dm.id}
-              className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300/30  hover:text-white transition-colors duration-200"
+              onClick={() => {
+                setSelectedChatId(dm.id)
+                setActiveChat(dm)
+                ws.send(JSON.stringify({ type: "join", roomId: dm.id }))
+              }}
+              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300/50 hover:text-white ${activeChat?.id === dm.id && "bg-white/10 text-white"} transition-colors duration-200`}
             >
-              <div className="relative" >
-                <Avatar className="h-8 w-8" >
-                  <AvatarImage src="https://avatars.githubusercontent.com/u/124599?v=4" />
-                  <AvatarFallback>UN</AvatarFallback>
+              <div className="relative">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={"https://avatars.githubusercontent.com/u/124599?v=4" || otherUser.avatar} />
+                  <AvatarFallback>{otherUser.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className={`h-3 w-3 absolute border-2 border-DarkIndigo right-0 top-6 ${dm.status === "online" ? "bg-green-400" : "bg-gray-400"} rounded-full`} />
+                <div
+                  className={`h-3 w-3 absolute border-2 border-DarkIndigo right-0 top-6 ${otherUser.isOnline ? "bg-green-400" : "bg-gray-400"
+                    } rounded-full`}
+                />
               </div>
-              <span>{dm.name}</span>
+              <span>{otherUser.username}</span>
             </button>
-          )}
-        />
-      </div>
-    </div >
+          );
+        }}
+      />
+    </div>
   );
 };
 

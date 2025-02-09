@@ -22,7 +22,7 @@ class websocketClasses {
                     this.joinRoom(msg.roomId, ws);
                     break;
                 case "message":
-                    this.broadcast(msg.message, msg.roomId, ws);
+                    this.broadcast(msg.message, msg.roomId, ws, msg.from);
                     break;
                 case "onType":
                     this.broadcastTyping(ws, msg.roomId);
@@ -112,7 +112,7 @@ class websocketClasses {
         console.log("Remaining users:", websocketClasses.users);
     }
     //broadcast
-    broadcast(message, roomId, ws) {
+    broadcast(message, roomId, ws, from) {
         const userRoom = websocketClasses.userRooms.get(ws);
         if (!userRoom || userRoom !== roomId) {
             ws.send(JSON.stringify({ type: "error", message: "first join the room" }));
@@ -123,8 +123,11 @@ class websocketClasses {
             if (user !== ws && user.readyState === ws_1.WebSocket.OPEN) {
                 user.send(JSON.stringify({
                     type: "message",
-                    message: message,
-                    roomId: roomId,
+                    message: {
+                        from: from,
+                        roomId: roomId,
+                        content: message
+                    }
                 }));
             }
         });

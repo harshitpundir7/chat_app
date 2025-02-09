@@ -18,7 +18,7 @@ export interface User {
   email: string;
   username: string;
   avatar: string | null;
-  firstName: string ;
+  firstName: string;
   lastName: string | null;
 }
 
@@ -33,7 +33,7 @@ export interface ChatRoom {
   isGroup: boolean;
   createdAt: Date;
   ChatRoomUser: ChatRoomUser[];
-  users: User[]; 
+  users: User[];
 }
 
 export interface Message {

@@ -22,7 +22,7 @@ const Sidebar = ({ activeButton, setActiveButton }: {
   const route = useRouter();
 
   return (
-    <aside className="h-screen w-20 flex-shrink-0 p-2 border-r border-white/10">
+    <aside className="h-screen w-20 flex-shrink-0 overflow-hidden p-2 border-r border-white/10">
       <h1 className="text-4xl flex items-center justify-center text-center py-4 font-semibold text-white">
         <MessagesSquare className="h-8 w-8" />
       </h1>

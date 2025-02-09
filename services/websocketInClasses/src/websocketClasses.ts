@@ -3,9 +3,9 @@ import { Server, WebSocket } from "ws";
 export class websocketClasses {
   private static wss: Server;
   private static rooms: { [roomId: string]: Set<WebSocket> } = {};
-  private static users: string[] = [];
+  private static users: number[] = [];
   private static userRooms: Map<WebSocket, string> = new Map();
-  private static userConnections: Map<string, WebSocket> = new Map();
+  private static userConnections: Map<number, WebSocket> = new Map();
 
   constructor(port: number) {
     const server = new WebSocket.Server({ port: port })
@@ -25,7 +25,7 @@ export class websocketClasses {
           break;
         case "join": this.joinRoom(msg.roomId, ws);
           break;
-        case "message": this.broadcast(msg.message, msg.roomId, ws);
+        case "message": this.broadcast(msg.message, msg.roomId, ws, msg.from);
           break;
         case "onType": this.broadcastTyping(ws, msg.roomId);
           break;
@@ -43,7 +43,7 @@ export class websocketClasses {
   }
 
   //to connect 
-  private connectServer(ws: any, userId: string) {
+  private connectServer(ws: any, userId: number) {
     const existingConnection = websocketClasses.userConnections.get(userId);
     if (existingConnection) {
       existingConnection.close();
@@ -135,7 +135,7 @@ export class websocketClasses {
   }
 
   //broadcast
-  private broadcast(message: string, roomId: string, ws: WebSocket) {
+  private broadcast(message: string, roomId: string, ws: WebSocket, from: number) {
     const userRoom = websocketClasses.userRooms.get(ws);
     if (!userRoom || userRoom !== roomId) {
       ws.send(JSON.stringify({ type: "error", message: "first join the room" }));
@@ -147,8 +147,11 @@ export class websocketClasses {
       if (user !== ws && user.readyState === WebSocket.OPEN) {
         user.send(JSON.stringify({
           type: "message",
-          message: message,
-          roomId: roomId,
+          message: {
+            from: from,
+            roomId: roomId,
+            content: message
+          }
         }));
       }
     });

@@ -3,7 +3,7 @@ import { prisma } from "@/Client";
 import { auth } from "@/auth";
 import { ChatRoom } from "../types";
 
-export const ChatWithOtherUser = async (): Promise<ChatRoom[]> => {
+export const ChatWithOtherUser = async (): Promise<{ groupsData: ChatRoom[]; singleChatData: ChatRoom[] }> => {
   const session = await auth();
   const userId = parseInt(session?.user?.id as string);
   const chatRooms = await prisma.chatRoom.findMany({
@@ -19,25 +19,43 @@ export const ChatWithOtherUser = async (): Promise<ChatRoom[]> => {
         include: {
           user: {
             select: {
-              email: true,
               id: true,
+              email: true,
               username: true,
               avatar: true,
               firstName: true,
               lastName: true,
             },
           },
-        }
-      }
-    }
+        },
+      },
+    },
   });
-  const chatRoomsWithOtherUsers = chatRooms.map(chatRoom => ({
-    ...chatRoom,
-    users: chatRoom.ChatRoomUser
-      .map(chatRoomUser => chatRoomUser.user)
-      .filter(user => user.id !== userId),
-  }));
-  return chatRoomsWithOtherUsers;
+
+  const groupedChats = chatRooms.reduce(
+    (acc, chatRoom) => {
+      const users = chatRoom.ChatRoomUser.map((chatRoomUser) => chatRoomUser.user);
+
+      const chatRoomWithUsers: ChatRoom = {
+        id: chatRoom.id,
+        name: chatRoom.name,
+        isGroup: chatRoom.isGroup,
+        createdAt: chatRoom.createdAt,
+        users: users, // Assign only users here
+        ChatRoomUser: [], // We don't need this anymore
+      };
+
+      if (chatRoom.isGroup) {
+        acc.groupsData.push(chatRoomWithUsers);
+      } else {
+        acc.singleChatData.push(chatRoomWithUsers);
+      }
+
+      return acc;
+    },
+    { groupsData: [] as ChatRoom[], singleChatData: [] as ChatRoom[] }
+  );
+  return groupedChats;
 }
 
 export const GetRoomMessage = async (roomId: string) => {
