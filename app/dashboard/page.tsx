@@ -24,7 +24,7 @@ const Dashboard = () => {
   const [selectedRoom, setSelectedRoom] = useState<string>();
   const [ws, setWs] = useState<WebSocket>();
   const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
-  const [incomingMessage, setIncomingMessage] = useState<Message>()
+  const [incomingMessage, setIncomingMessage] = useState<Message | null>(null)
   const [activeButton, setActiveButton] = useState<string>("message");
   const [chatsData, setChatsData] = useState<{ groupsData: ChatRoom[]; singleChatData: ChatRoom[] }>();
 
@@ -130,7 +130,7 @@ const Dashboard = () => {
           </ResizablePanel>
           <ResizableHandle className='bg-white/10 text-white/10' />
           <ResizablePanel className='' defaultSize={80} >
-            <ConversationalPanel ws={ws!} userId={parseInt(session?.user?.id!)} activeChat={activeChat!} incomingMessage={incomingMessage!} />
+            <ConversationalPanel ws={ws!} setIncomingMessage={setIncomingMessage} userId={parseInt(session?.user?.id!)} activeChat={activeChat!} incomingMessage={incomingMessage!} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </main >

@@ -75,7 +75,6 @@ export const GetRoomMessage = async (roomId: string) => {
 
   return msgData.map(msg => ({
     from: msg.userId,
-    //to: 0,
     content: msg.content
   }));
 

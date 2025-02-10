@@ -14,52 +14,102 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@redis/client");
 const pg_1 = require("pg");
+const uuid_1 = require("uuid");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const redisUrl = process.env.NEXT_PUBLIC_REDIS_URL;
+const redisUrl = process.env.NEXT_REDIS_URL;
 const redisPassword = process.env.NEXT_REDIS_PASSWORD;
-if (redisPassword == undefined && redisUrl == undefined) {
-    throw new Error("redis url or password not set in env file");
-}
+const dbUrl = process.env.DATABASE_URL;
+// Redis Client Setup
 const redisClient = (0, client_1.createClient)({
     username: "default",
     password: redisPassword,
     socket: {
         host: redisUrl,
-        port: 12207
-    }
+        port: 12207,
+    },
 });
-if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set in the .env file');
-}
-const pool = new pg_1.Pool({
-    connectionString: process.env.DATABASE_URL
-});
-function worker() {
+// PostgreSQL Client Setup
+const pool = new pg_1.Pool({ connectionString: dbUrl });
+// Connect to Redis with Retry
+function connectRedis() {
     return __awaiter(this, void 0, void 0, function* () {
-        yield redisClient.connect();
+        let attempts = 0;
+        while (attempts < 5) {
+            try {
+                yield redisClient.connect();
+                console.log("Connected to Redis");
+                return;
+            }
+            catch (error) {
+                console.error(`Redis connection failed (Attempt ${attempts + 1}):`, error);
+                attempts++;
+                yield new Promise((res) => setTimeout(res, 2000)); // Retry after 2s
+            }
+        }
+        throw new Error("Redis connection failed after 5 attempts");
+    });
+}
+// Fetch messages in batch
+function fetchMessages() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const messages = yield redisClient.lRange("message", 0, 9);
+        if (messages.length === 0)
+            return [];
+        yield redisClient.lTrim("message", messages.length, -1);
+        return messages.map((msg) => JSON.parse(msg));
+    });
+}
+// Insert messages in batch with transaction
+function insertMessages(messages) {
+    return __awaiter(this, void 0, void 0, function* () {
         const pgClient = yield pool.connect();
         try {
-            while (true) {
-                const response = yield redisClient.brPop("message", 0);
-                // const data: ServerMessage = JSON.parse(response?.element as string);
-                // // uploading msg
-                // try {
-                //   const result = await pgClient.query(
-                //     `INSERT INTO "Message" (id, content, "userId", "ChatRoomId", "createdAt")
-                //      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                //     [uuidv4(), data.Message.content, data.Message.from, data.roomId, new Date()]
-                //   );
-                //   console.log("created on db");
-                // } catch (error) {
-                //   console.error('Error creating message:', error);
-                // }
+            yield pgClient.query("BEGIN");
+            for (const data of messages) {
+                yield pgClient.query(`INSERT INTO "Message" (id, content, "userId", "ChatRoomId", "createdAt")
+         VALUES ($1, $2, $3, $4, $5)`, [(0, uuid_1.v4)(), data.Message.content, data.Message.from, data.roomId, new Date()]);
             }
+            yield pgClient.query("COMMIT");
+            console.log(`Inserted ${messages.length} messages`);
+        }
+        catch (error) {
+            yield pgClient.query("ROLLBACK");
+            console.error("Transaction failed:", error);
         }
         finally {
             pgClient.release();
-            yield redisClient.disconnect();
         }
     });
 }
+// Worker process
+function worker() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield connectRedis();
+        console.log("Worker started...");
+        try {
+            while (true) {
+                const messages = yield fetchMessages();
+                if (messages.length > 0) {
+                    yield insertMessages(messages);
+                }
+            }
+        }
+        catch (error) {
+            console.error("Worker error:", error);
+        }
+        finally {
+            yield redisClient.disconnect();
+            yield pool.end();
+        }
+    });
+}
+// Graceful shutdown
+process.on("SIGTERM", () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Shutting down worker...");
+    yield redisClient.disconnect();
+    yield pool.end();
+    process.exit(0);
+}));
+// Start worker
 worker().catch(console.error);

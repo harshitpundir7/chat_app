@@ -4,7 +4,9 @@ import { ChatRoom, Message, User } from '@/lib/types'
 import { Avatar, AvatarImage } from './ui/avatar'
 import { BorderBeam } from './border-beam'
 import { Paperclip, SendHorizontal } from 'lucide-react'
-import { type } from 'os'
+import { uploadOnRedis } from '@/lib/actions/RedisMessageUpload'
+import { GetRoomMessage } from '@/lib/actions/ChatWithUser'
+import { ShineBorder } from './magicui/shine-border'
 
 interface ExtendedUser extends User {
   isOnline: boolean;
@@ -18,10 +20,11 @@ interface ConversationalPanelProps {
   activeChat: ExtendedChatRoom
   ws: WebSocket
   incomingMessage: Message
+  setIncomingMessage: React.Dispatch<React.SetStateAction<Message | null>>
   userId: number
 }
 
-const ConversationalPanel: React.FC<ConversationalPanelProps> = ({ activeChat, ws, incomingMessage, userId }) => {
+const ConversationalPanel: React.FC<ConversationalPanelProps> = ({ activeChat, ws, incomingMessage, userId, setIncomingMessage }) => {
   const [activeUser, setActiveUser] = useState<ExtendedUser>()
   const [focusedInput, setFocusedInput] = useState(false)
   const [showUserInfo, setShowUserInfo] = useState(false)
@@ -33,17 +36,24 @@ const ConversationalPanel: React.FC<ConversationalPanelProps> = ({ activeChat, w
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  async function getServerMessages(roomId: string) {
+    const result = await GetRoomMessage(roomId);
+    setMessageData(result)
+  }
   //load activeChat
   useEffect(() => {
     if (activeChat && !activeChat.isGroup && activeChat.users.length > 0) {
       setActiveUser(activeChat.users.filter(user => user.id != userId)[0]);
+      getServerMessages(activeChat.id)
     }
-  }, [activeChat]);
+    // setMessageData([])
+  }, [activeChat, activeUser]);
 
   //load incomingMessage
   useEffect(() => {
     if (incomingMessage && Object.keys(incomingMessage).length !== 0) {
       setMessageData(prev => [...prev, incomingMessage])
+      setIncomingMessage(null)
     }
   }, [incomingMessage])
 
@@ -69,9 +79,14 @@ const ConversationalPanel: React.FC<ConversationalPanelProps> = ({ activeChat, w
         roomId: activeChat.id,
         from: userId
       }))
+      handleUplaod({ from: userId, content: inputMessage.trim() }, activeChat.id)
       setMessageData(prev => [...prev, { content: inputMessage.trim(), from: userId }])
       setInputMessage('')
     }
+  }
+
+  async function handleUplaod(msg: Message, roomId: string) {
+    await uploadOnRedis(msg, roomId)
   }
 
   return (
@@ -167,7 +182,7 @@ const UserInfoOverlay = ({ user, isVisible }: { user: ExtendedUser; isVisible: b
         initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
-        className="absolute top-full left-0 right-0 backdrop-blur-md bg-DarkNavy/95 border-b border-white/10"
+        className="absolute z-10 top-full left-0 right-0 backdrop-blur-lg bg-DarkNavy/5 border-b border-white/10"
       >
         <motion.div
           className="p-6 space-y-4"
@@ -182,10 +197,15 @@ const UserInfoOverlay = ({ user, isVisible }: { user: ExtendedUser; isVisible: b
               transition={{ type: "spring", stiffness: 400 }}
               className='relative rounded-full p-1'
             >
-              <BorderBeam size={140} duration={4} />
-              <Avatar className="h-20 w-20 ring-2 ring-offset-1 ring-offset-DarkNavy ring-white/20">
-                <AvatarImage src={"https://github.com/shadcn.png"} />
-              </Avatar>
+              <ShineBorder
+                borderRadius={9999}
+                className="relative p-1"
+                color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+              >
+                <Avatar className="h-20 w-20 ring-2 ring-offset-1 ring-offset-DarkNavy ring-white/20">
+                  <AvatarImage src={"https://github.com/shadcn.png"} />
+                </Avatar>
+              </ShineBorder>
             </motion.div>
 
             <div className="space-y-2">
