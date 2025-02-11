@@ -52,14 +52,14 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
       setActiveUser(activeChat.users.filter(user => user.id !== userId)[0]);
       getServerMessages(activeChat.id);
     }
-  }, [activeChat, activeUser]);
+  }, [activeChat, activeUser, userId]);
 
   useEffect(() => {
     if (incomingMessage && Object.keys(incomingMessage).length !== 0) {
       setMessageData(prev => [...prev, incomingMessage]);
       setIncomingMessage(null);
     }
-  }, [incomingMessage]);
+  }, [incomingMessage, setIncomingMessage]);
 
   useEffect(() => {
     scrollToBottom();

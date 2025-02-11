@@ -1,7 +1,7 @@
-import { Server, WebSocket } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 
 export class websocketClasses {
-  private static wss: Server;
+  private static wss: WebSocketServer;
   private static rooms: { [roomId: string]: Set<WebSocket> } = {};
   private static users: number[] = [];
   private static userRooms: Map<WebSocket, string> = new Map();

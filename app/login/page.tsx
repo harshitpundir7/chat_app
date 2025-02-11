@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from "react";
 import { LoginHandler } from "@/lib/actions";
-import { MessageCircleDashed } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -41,7 +40,7 @@ export default function Login() {
             <div
               className=" items-center mb-6 text-2xl font-semibold bg-gradient-to-r from-MineBlue via-MinePink to-MineYellow bg-clip-text text-transparent "
             >
-              Back for More? We Knew You’d Return!
+              Back for More? We Knew You&rsquo;d Return!
             </div>
             <div className="w-full bg-white/5 border-gray-800/30 rounded-lg md:mt-0 sm:max-w-md xl:p-0 ">
               <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
@@ -111,7 +110,7 @@ export default function Login() {
                   Login
                 </button>
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                  Don't Have Any Account?{" "}
+                  Don&apos;t Have Any Account?
                   <Link
                     href="/signup"
                     className="font-medium text-primary-600 hover:underline hover:text-white"

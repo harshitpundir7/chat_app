@@ -1,11 +1,10 @@
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChatRoom, Message, User } from '@/lib/types';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { GetRoomMessage } from '@/lib/actions/ChatWithUser';
 import { uploadOnRedis } from '@/lib/actions/RedisMessageUpload';
-import { BorderBeam } from '@/components/border-beam';
-import { Paperclip, SendHorizontal, ChevronLeft, MoreVertical, Users } from 'lucide-react';
+import { Paperclip, SendHorizontal, ChevronLeft, MoreVertical } from 'lucide-react';
 
 interface GroupChatPanelProps {
   activeChat: ChatRoom;
@@ -22,7 +21,7 @@ const GroupChatPanel: React.FC<GroupChatPanelProps> = ({
   userId,
   setIncomingMessage,
 }) => {
-  const [focusedInput, setFocusedInput] = useState(false);
+  // const [focusedInput, setFocusedInput] = useState(false);
   const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [inputMessage, setInputMessage] = useState<string>('');
   const [messageData, setMessageData] = useState<Message[]>([]);
@@ -48,7 +47,7 @@ const GroupChatPanel: React.FC<GroupChatPanelProps> = ({
       setMessageData(prev => [...prev, incomingMessage]);
       setIncomingMessage(null);
     }
-  }, [incomingMessage]);
+  }, [incomingMessage, setIncomingMessage]);
 
   useEffect(() => {
     scrollToBottom();
@@ -137,8 +136,8 @@ const GroupChatPanel: React.FC<GroupChatPanelProps> = ({
                     className="w-full bg-white/10 px-4 py-2.5 focus:outline-none text-white/90 placeholder:text-white/30"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    onFocus={() => setFocusedInput(true)}
-                    onBlur={() => setFocusedInput(false)}
+                  // onFocus={() => setFocusedInput(true)}
+                  // onBlur={() => setFocusedInput(false)}
                   />
                 </div>
                 <button
