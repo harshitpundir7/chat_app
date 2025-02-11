@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Hash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ChatRoom, User } from "@/lib/types";
+import { CreateGroupDialog } from "./CreateGroupDialog";
 
 interface ChatSidebarProps {
   chatsData: { groupsData: ChatRoom[]; singleChatData: ChatRoom[] };
@@ -98,12 +99,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setAc
     <div className="px-4 py-2 space-y-4">
       <div className="flex w-full items-center justify-between py-3 px-2 cursor-pointer rounded-lg">
         <h2 className="text-white font-semibold">Chat</h2>
-        <button
-          className="hover:bg-white/10 px-4 rounded-lg py-2 text-white/50 hover:text-white transition-all duration-300 cursor-pointer"
-          onClick={() => console.log("created group")}
-        >
-          <span>+</span>
-        </button>
+        <CreateGroupDialog singleChatData={singleChatData} userId={userId} />
       </div>
 
       {/* Groups Section */}

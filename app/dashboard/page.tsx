@@ -31,6 +31,7 @@ const Dashboard = () => {
   //get chat data
   async function getChatData() {
     const result = await ChatWithOtherUser();
+    console.log(result)
     setChatsData(result);
   }
 
