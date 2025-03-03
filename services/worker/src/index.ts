@@ -8,6 +8,7 @@ dotenv.config();
 const redisUrl = process.env.NEXT_REDIS_URL!;
 const redisPassword = process.env.NEXT_REDIS_PASSWORD!;
 const dbUrl = process.env.DATABASE_URL!;
+const redisPort = parseInt(process.env.NEXT_REDIS_PORT!);
 
 // Redis Client Setup
 const redisClient = createClient({
@@ -15,7 +16,7 @@ const redisClient = createClient({
   password: redisPassword,
   socket: {
     host: redisUrl,
-    port: 12207,
+    port: redisPort,
   },
 });
 

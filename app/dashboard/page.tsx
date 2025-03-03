@@ -1,6 +1,6 @@
 "use client";
 import { ChatRoom, Message, User } from '@/lib/types';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import "../globals.css"
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ChatSidebar from '@/components/ChatSidebar';
 import { ChatWithOtherUser } from '@/lib/actions/ChatWithUser';
 import ConversationalPanel from '@/components/ConversationalPanel';
+import { UserContext } from '../Provider';
 
 interface ExtendedUser extends User {
   isOnline: boolean;
@@ -21,25 +22,26 @@ interface ExtendedChatRoom extends ChatRoom {
 const Dashboard = () => {
   const { data: session, status } = useSession();
   const [activeChat, setActiveChat] = useState<ExtendedChatRoom>();
-  const [selectedRoom, setSelectedRoom] = useState<string>();
   const [ws, setWs] = useState<WebSocket>();
   const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
   const [incomingMessage, setIncomingMessage] = useState<Message | null>(null)
-  const [activeButton, setActiveButton] = useState<string>("message");
   const [chatsData, setChatsData] = useState<{ groupsData: ChatRoom[]; singleChatData: ChatRoom[] }>();
+  const userData = useContext(UserContext)
 
   //get chat data
   async function getChatData() {
     const result = await ChatWithOtherUser();
-    console.log(result)
     setChatsData(result);
   }
 
   useEffect(() => {
-    const webSocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8080/';
+    const webSocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
 
     getChatData();
-
+    const lastChat = localStorage.getItem("lastChat");
+    if (lastChat) {
+      setActiveChat(JSON.parse(lastChat))
+    }
 
     if (!webSocketUrl) {
       console.error("WebSocket URL is not defined");
@@ -116,8 +118,8 @@ const Dashboard = () => {
                   <div className='text-white/30 text-2xl ' >
                     +
                   </div>
-                  <Avatar className='h-8 w-8' >
-                    <AvatarImage src='https://github.com/shadcn.png' />
+                  <Avatar className='h-8 w-8 border border-white' >
+                    <AvatarImage src={userData?.user.avatar || `https://github.com/shadcn.png`} />
                     <AvatarFallback>UN</AvatarFallback>
                   </Avatar>
                 </div>

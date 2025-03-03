@@ -27,6 +27,9 @@ class websocketClasses {
                 case "onType":
                     this.broadcastTyping(ws, msg.roomId);
                     break;
+                case "global":
+                    this.joinRoom("global", ws);
+                    break;
                 default: console.log("wrong input");
             }
         });

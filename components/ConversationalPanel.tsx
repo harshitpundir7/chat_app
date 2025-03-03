@@ -1,4 +1,4 @@
-import React, { } from 'react'
+import React from 'react'
 import { ChatRoom, Message, User } from '@/lib/types'
 import SingleChatPanel from './SingleChatPanel'
 import GroupChatPanel from './GroupChatPanel';
@@ -22,8 +22,8 @@ interface ConversationalPanelProps {
 const ConversationalPanel: React.FC<ConversationalPanelProps> = ({ activeChat, ws, incomingMessage, userId, setIncomingMessage }) => {
   if (!activeChat) {
     return (
-      <div className='flex justify-center items-center text-gray-300/50'>
-        Start chatting
+      <div className='flex h-screen justify-center text-xl items-center text-gray-300/50'>
+        select chat to start
       </div>
     );
   }

@@ -106,7 +106,7 @@ const GroupChatPanel: React.FC<GroupChatPanelProps> = ({
       <div className="flex-1 overflow-hidden relative">
         <div className="flex flex-col h-full">
           {/* Scrollable Messages Area */}
-          <div className="flex-1 overflow-y-auto px-4 py-6 pb-20">
+          <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300  dark:[&::-webkit-scrollbar-track]:bg-blue-950  dark:[&::-webkit-scrollbar-thumb]:bg-DarkIndigo/50 px-4 py-6 pb-20">
             <div className="space-y-6">
               {messageData.map((message, index) => (
                 <MessageBubble
@@ -182,55 +182,58 @@ const MessageBubble = ({ message, isOwn, sender }: { message: Message; isOwn: bo
   )
 };
 
-const GroupInfoOverlay = ({ chat, isVisible }: { chat: ChatRoom; isVisible: boolean }) => (
-  <AnimatePresence>
-    {isVisible && (
-      <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        className="absolute z-10 top-full left-0 right-0 bg-gradient-to-b from-DarkNavy/95 to-DarkNavy/90 backdrop-blur-xl border-b border-white/10"
-      >
+const GroupInfoOverlay = ({ chat, isVisible }: { chat: ChatRoom; isVisible: boolean }) => {
+  const chatCreatedDate = new Date(chat.createdAt).toLocaleDateString();
+  return (
+    <AnimatePresence>
+      {isVisible && (
         <motion.div
-          className="p-6"
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="absolute z-10 top-full left-0 right-0 bg-gradient-to-b from-DarkNavy/95 to-DarkNavy/90 backdrop-blur-xl border-b border-white/10"
         >
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="space-y-1">
-                <h2 className="text-xl font-medium text-white">{chat.name}</h2>
-                <p className="text-sm text-white/50">Created on {chat.createdAt.toLocaleDateString()}</p>
+          <motion.div
+            className="p-6"
+            initial={{ y: -20 }}
+            animate={{ y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-medium text-white">{chat.name}</h2>
+                  <p className="text-sm text-white/50">Created on {chatCreatedDate}</p>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-white/70">Group Members</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {chat.users.map((user) => (
-                  <motion.div
-                    key={user.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3 p-2 rounded-lg bg-white/5"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar!} />
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-white">{user.username}</span>
-                      <span className="text-xs text-white/50">{user.email}</span>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-white/70">Group Members</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {chat.users.map((user) => (
+                    <motion.div
+                      key={user.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-3 p-2 rounded-lg bg-white/5"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatar!} />
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-white">{user.username}</span>
+                        <span className="text-xs text-white/50">{user.email}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default GroupChatPanel;

@@ -7,29 +7,17 @@ if (!secret) {
   throw new Error("NEXTAUTH_SECRET is not set in the environment variables");
 }
 export async function middleware(req: NextRequest) {
-  const getTokenParams: GetTokenParams = {
-    req: req as unknown as GetTokenParams['req'],
-    secret: secret!,
-    salt: ""
-  };
+  const token = await getToken({ req, secret: secret as string, raw: true });
 
-  const token = await getToken(getTokenParams);
-
-  const { pathname } = req.nextUrl;
-
-  if (token) {
-    return NextResponse.next();
+  if (!token) {
+    console.log("No token found, redirecting to login");
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (pathname.startsWith("/profile") || pathname.startsWith("/dashboard")) {
-    const loginUrl = new URL("/login", req.url ?? "");
-    loginUrl.searchParams.set("callbackUrl", req.url);
-    return NextResponse.redirect(loginUrl);
-  }
-
+  console.log("Token found, proceeding");
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/setting", "/profile", "/dashboard/:path*"],
+  matcher: ["/dashboard/:path*"],
 };

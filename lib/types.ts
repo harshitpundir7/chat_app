@@ -46,3 +46,10 @@ export interface ServerMessage {
   message: Message;
   roomId: string;
 }
+export const imageSchema = z.object({
+  fileName: z.string(),
+  fileType: z.string(),
+  fileData: z.string(),
+})
+
+export type imageSchemaType = z.infer<typeof imageSchema>

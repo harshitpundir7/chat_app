@@ -4,11 +4,12 @@ import { Message } from "../types";
 
 const redisUrl = process.env.NEXT_REDIS_URL;
 const redisPassword = process.env.NEXT_REDIS_PASSWORD;
+const redisPort = parseInt(process.env.NEXT_REDIS_PORT!);
 const client = createClient({
   password: redisPassword,
   socket: {
     host: redisUrl,
-    port: 12207
+    port: redisPort
   }
 });
 client.on("error", (err) => console.error("redis client error ", err));

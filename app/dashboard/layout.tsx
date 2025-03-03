@@ -1,10 +1,10 @@
-// app/layout.tsx
 "use client";
 import { Inter } from "next/font/google";
 import "../globals.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Cloud, MessageCircle, MessagesSquare, Radio, Settings, UserIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import UserProvider from "../Provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,6 +41,7 @@ const Sidebar = ({ activeButton, setActiveButton }: {
                 onClick={() => {
                   setActiveButton(id);
                   route.push(`${routeLink}`)
+                  localStorage.setItem("activeButton", id)
                 }}
               >
                 <Icon className={`h-6 w-6 ${activeButton === id ? "text-white" : "text-white/70"
@@ -61,15 +62,23 @@ export default function RootLayout({
 }>) {
   const [activeButton, setActiveButton] = useState<string>("message");
 
+  const path = usePathname();
+  useEffect(() => {
+    const activePath = path.split("/")[2];
+    if (activePath) setActiveButton(activePath);
+    else setActiveButton("message");
+  }, [])
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
-        <main className="flex h-screen bg-DarkNavy">
-          <Sidebar activeButton={activeButton} setActiveButton={setActiveButton} />
-          <div className="flex-1 overflow-auto">
-            {children}
-          </div>
-        </main>
+        <UserProvider>
+          <main className="flex h-screen bg-DarkNavy">
+            <Sidebar activeButton={activeButton} setActiveButton={setActiveButton} />
+            <div className="flex-1 overflow-auto">
+              {children}
+            </div>
+          </main>
+        </UserProvider>
       </body>
     </html>
   );

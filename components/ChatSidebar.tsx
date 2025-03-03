@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Hash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ChatRoom, User } from "@/lib/types";
@@ -118,7 +118,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setAc
               key={group.id}
               onClick={() => {
                 setSelectedChatId(group.id)
-                setActiveChat(groupsData.find(g => g.id === group.id))
+                const selectedGroupChat = groupsData.find(g => g.id === group.id)
+                localStorage.setItem("lastChat", JSON.stringify(selectedGroupChat))
+                setActiveChat(selectedGroupChat)
                 ws.send(JSON.stringify({ type: "join", roomId: group.id }))
               }}
               className={`w-full flex items-center px-3 py-2 rounded-md hover:bg-white/5 text-gray-300/50 ${activeChat?.id === group.id && "bg-white/10"}  hover:text-white transition-colors duration-200`}
@@ -151,13 +153,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setAc
               onClick={() => {
                 setSelectedChatId(dm.id)
                 setActiveChat(dm)
+                localStorage.setItem("lastChat", JSON.stringify(dm))
                 ws.send(JSON.stringify({ type: "join", roomId: dm.id }))
               }}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300/50 hover:text-white ${activeChat?.id === dm.id && "bg-white/10 text-white"} transition-colors duration-200`}
             >
               <div className="relative">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={"https://avatars.githubusercontent.com/u/124599?v=4" || otherUser.avatar} />
+                  <AvatarImage src={otherUser.avatar || "https://avatars.githubusercontent.com/u/124599?v=4"} />
                   <AvatarFallback>{otherUser.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div

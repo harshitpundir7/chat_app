@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useContext, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChatRoom, Message, User } from '@/lib/types';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -7,6 +7,7 @@ import { uploadOnRedis } from '@/lib/actions/RedisMessageUpload';
 import { ShineBorder } from '@/components/magicui/shine-border';
 import { BorderBeam } from '@/components/border-beam';
 import { Paperclip, SendHorizontal, ChevronLeft, MoreVertical } from 'lucide-react';
+import { UserContext } from '@/app/Provider';
 
 interface ExtendedUser extends User {
   isOnline: boolean;
@@ -84,6 +85,14 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
     }
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const inputFiles = e.target.files;
+    if (!inputFiles) return;
+    const file = inputFiles[0];
+    const fileSize = file.size / 1000000;
+    console.log(fileSize)
+  }
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-DarkIndigo to-DarkNavy">
       {/* Header */}
@@ -99,7 +108,7 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
                 <ChevronLeft className="h-5 w-5 text-white/70" />
               </button>
               <Avatar className="h-10 w-10 ring-2 ring-offset-2 ring-offset-DarkNavy/50 ring-white/20">
-                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarImage src={activeUser.avatar || "https://github.com/shadcn.png"} />
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-white font-medium">{activeUser.username}</span>
@@ -131,13 +140,14 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
         ) : (
           <div className="flex flex-col h-full">
             {/* Scrollable Messages Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 pb-20">
+            <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300  dark:[&::-webkit-scrollbar-track]:bg-blue-950  dark:[&::-webkit-scrollbar-thumb]:bg-DarkIndigo/50 px-4 py-6 pb-20">
               <div className="space-y-6">
                 {messageData.map((message, index) => (
                   <MessageBubble
                     key={index}
                     message={message}
                     isOwn={message.from === userId}
+                    userAvatar={activeUser.avatar!}
                   />
                 ))}
                 <div ref={messageEndRef} />
@@ -150,8 +160,9 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="p-2.5 hover:bg-white/10 rounded-full transition-colors"
+                    className="p-2.5 hover:bg-white/10 relative rounded-full transition-colors"
                   >
+                    <input type='file' onChange={(e) => handleFileChange(e)} className='absolute h-8 opacity-0 cursor-pointer top-0 left-0 w-10 ' />
                     <Paperclip className="h-5 w-5 text-white/70" />
                   </button>
                   <div className="flex-1 relative rounded-2xl overflow-hidden">
@@ -188,7 +199,7 @@ const UserInfoOverlay = ({ user, isVisible }: { user: ExtendedUser; isVisible: b
         initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
-        className="absolute z-10 top-full left-0 right-0 backdrop-blur-lg bg-DarkNavy/5 border-b border-white/10"
+        className="absolute z-10 top-full left-0 right-0 backdrop-blur-lg bg-DarkNavy/10 border-b border-white/10"
       >
         <motion.div
           className="p-6 space-y-4"
@@ -209,7 +220,7 @@ const UserInfoOverlay = ({ user, isVisible }: { user: ExtendedUser; isVisible: b
                 color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
               >
                 <Avatar className="h-20 w-20 ring-2 ring-offset-1 ring-offset-DarkNavy ring-white/20">
-                  <AvatarImage src={"https://github.com/shadcn.png"} />
+                  <AvatarImage src={user.avatar || "https://github.com/shadcn.png"} />
                 </Avatar>
               </ShineBorder>
             </motion.div>
@@ -249,26 +260,29 @@ const UserInfoOverlay = ({ user, isVisible }: { user: ExtendedUser; isVisible: b
   </AnimatePresence>
 );
 
-const MessageBubble = ({ message, isOwn }: { message: Message; isOwn: boolean }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}
-  >
-    <div className={`flex items-end gap-2 max-w-[70%] ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-      <Avatar className="h-8 w-8">
-        <AvatarImage src={isOwn ? "your-avatar.png" : "https://github.com/shadcn.png"} />
-      </Avatar>
-      <div
-        className={`px-4 py-2 rounded-2xl ${isOwn
-          ? 'bg-indigo-600 text-white rounded-br-none'
-          : 'bg-white/10 text-white/90 rounded-bl-none'
-          }`}
-      >
-        <p className="text-sm">{message.content}</p>
+const MessageBubble = ({ message, isOwn, userAvatar }: { message: Message; isOwn: boolean, userAvatar: string }) => {
+  const userData = useContext(UserContext)
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}
+    >
+      <div className={`flex items-end gap-2 max-w-[70%] ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={isOwn ? userData?.user.avatar! : userAvatar} />
+        </Avatar>
+        <div
+          className={`px-4 py-2 rounded-2xl ${isOwn
+            ? 'bg-indigo-600 text-white rounded-br-none'
+            : 'bg-white/10 text-white/90 rounded-bl-none'
+            }`}
+        >
+          <p className="text-sm">{message.content}</p>
+        </div>
       </div>
-    </div>
-  </motion.div>
-)
+    </motion.div>
+  )
+}
 
 export default SingleChatPanel;

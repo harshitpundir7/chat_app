@@ -20,13 +20,14 @@ dotenv_1.default.config();
 const redisUrl = process.env.NEXT_REDIS_URL;
 const redisPassword = process.env.NEXT_REDIS_PASSWORD;
 const dbUrl = process.env.DATABASE_URL;
+const redisPort = parseInt(process.env.NEXT_REDIS_PORT);
 // Redis Client Setup
 const redisClient = (0, client_1.createClient)({
     username: "default",
     password: redisPassword,
     socket: {
         host: redisUrl,
-        port: 12207,
+        port: redisPort,
     },
 });
 // PostgreSQL Client Setup

@@ -42,7 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         const parsedCredential = UserSchema.safeParse(credentials);
         if (!parsedCredential.success) {
-          throw new CredentialsSignin ({
+          throw new CredentialsSignin({
             cause: "Invalid input"
           })
         }
@@ -71,9 +71,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/login',
   },
   callbacks: {
-    async jwt({token,user}) {
-      if(user){
+    async jwt({ token, user }) {
+      if (user) {
         token.id = user.id;
+        console.log("token created")
       }
       return token;
     },
@@ -83,20 +84,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
-    authorized({ auth, request: { nextUrl } }) {
+    authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      } else if (isLoggedIn) {
-        return ;
+      const isOnDashboard = request.nextUrl.pathname.startsWith("/dashboard");
+
+      if (isOnDashboard && !isLoggedIn) {
+        return false;
       }
       return true;
     }
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60
   },
 
 });
