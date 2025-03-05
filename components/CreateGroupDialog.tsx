@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Check, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,6 +18,7 @@ import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Input } from "@/components/ui/input";
 import CreateGroup from "@/lib/actions/CreateGroup";
+import { TypeOf } from "zod";
 
 interface ExtendedChatRoom extends ChatRoom {
   users: ExtendedUser[];
@@ -44,28 +45,30 @@ const slideVariants = {
 
 export function CreateGroupDialog({ singleChatData, userId }: { singleChatData: ExtendedChatRoom[], userId: number }) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState<User[] | null>(null);
   const [selectedUser, setSelectedUser] = useState<number[]>([]);
   const [showNameInput, setShowNameInput] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [[page, direction], setPage] = useState([0, 0]);
+  const [inputValue, setInputValue] = useState('');
 
-  async function getData(name: string) {
-    if (search.trim()) {
-      const data = await filterUsers(name);
-      setSearchResult(data);
-    }
-  }
-
-  function updateValueChange(s: string) {
-    setSearch(s);
-    if (s.trim()) {
-      getData(s);
-    } else {
+  async function getData() {
+    if (!inputValue.trim()) return;
+    const data = await filterUsers(inputValue.trim())
+    if (!data) {
       setSearchResult(null);
+      return;
     }
+    setSearchResult(data);
+    console.log(data)
   }
+  useEffect(() => {
+    const delayedTimeOut = setTimeout(() => {
+      getData()
+    }, 300);
+    return () => clearTimeout(delayedTimeOut)
+  }, [inputValue])
+
 
   const paginate = (newDirection: number) => {
     setPage([page + newDirection, newDirection]);
@@ -116,15 +119,34 @@ export function CreateGroupDialog({ singleChatData, userId }: { singleChatData: 
                     <CommandInput
                       placeholder="Search users...."
                       className="backdrop-blur-md bg-white/5"
-                      value={search}
-                      onValueChange={(e) => updateValueChange(e)}
+                      onValueChange={(e => setInputValue(e))}
                     />
                     <CommandList>
-                      {searchResult !== null && (
+
+                      {searchResult != null && (
                         <div>
-                          <CommandEmpty>No result found.</CommandEmpty>
+                          {searchResult.length == 0 && (<CommandEmpty>No result found.</CommandEmpty>)}
                           <CommandGroup>
-                            <CommandItem>hello</CommandItem>
+                            {searchResult.map((user) => (
+                              <CommandItem key={user.id} className="bg-white/10 cursor-pointer text-white mb-2 mt-2" >
+                                <div className="flex items-center mb-2 gap-2 mx-2 " >
+                                  <div>
+                                    <Avatar className="border border-white" >
+                                      <AvatarImage src={user.avatar || "https://githubusercontent.com"} />
+                                      <AvatarFallback>{user.username.slice(0, 2)}</AvatarFallback>
+                                    </Avatar>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm" >
+                                      {user.username}
+                                    </div>
+                                    <div className="text-xs text-gray-300/80" >
+                                      {user.email}
+                                    </div>
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            ))}
                           </CommandGroup>
                         </div>
                       )}
@@ -273,6 +295,6 @@ export function CreateGroupDialog({ singleChatData, userId }: { singleChatData: 
           )}
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 }

@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import "../globals.css"
-import { LogOut, MessagesSquare, } from 'lucide-react';
+import { LogOut, } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ChatSidebar from '@/components/ChatSidebar';
 import { ChatWithOtherUser } from '@/lib/actions/ChatWithUser';
