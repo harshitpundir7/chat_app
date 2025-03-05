@@ -1,15 +1,16 @@
 "use client";
 import { ChatRoom, Message, User } from '@/lib/types';
 import React, { useContext, useEffect, useState } from 'react';
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import "../globals.css"
-import { MessagesSquare, } from 'lucide-react';
+import { LogOut, MessagesSquare, } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ChatSidebar from '@/components/ChatSidebar';
 import { ChatWithOtherUser } from '@/lib/actions/ChatWithUser';
 import ConversationalPanel from '@/components/ConversationalPanel';
 import { UserContext } from '../Provider';
+import { Select, SelectContent, SelectTrigger } from '@/components/ui/select';
 
 interface ExtendedUser extends User {
   isOnline: boolean;
@@ -101,6 +102,10 @@ const Dashboard = () => {
     }
   }
 
+  function handleLogout() {
+    localStorage.clear();
+    signOut()
+  }
   return (
     <div className="flex h-screen text-gray-300/90 overflow-hidden bg-DarkNavy">
       <main className='h-screen w-full' >
@@ -109,19 +114,23 @@ const Dashboard = () => {
             <div className='' >
               <nav className='flex justify-between items-center py-6 px-4 border-b border-white/10 ' >
                 <div className='flex h-8 w-8 bg- space-x-2 items-center' >
-                  <div className='bg-gradient-to-br from-MineBlue flex justify-between items-center border-white/70 border via-MinePink to-MineDarkYellow p-2 text-center rounded-full' >
-                    <MessagesSquare className='text-white/70' />
-                  </div>
-                  <span className='text-base text-white font-semibold' >connect</span>
+                  <span className='text-base text-white font-semibold cursor-default '>@{userData?.user.username}</span>
                 </div>
-                <div className='flex items-center gap-3' >
-                  <div className='text-white/30 text-2xl ' >
-                    +
-                  </div>
-                  <Avatar className='h-8 w-8 border border-white' >
-                    <AvatarImage src={userData?.user.avatar || `https://github.com/shadcn.png`} />
-                    <AvatarFallback>UN</AvatarFallback>
-                  </Avatar>
+                <div className='flex cursor-pointer items-center hover:bg-white/10  rounded-lg py-2 gap-3' >
+                  <Select>
+                    <SelectTrigger className='border-0 flex items-center gap-3 focus:ring-0' >
+                      <Avatar className='h-8 w-8 border border-white' >
+                        <AvatarImage src={userData?.user.avatar || `https://github.com/shadcn.png`} />
+                        <AvatarFallback>UN</AvatarFallback>
+                      </Avatar>
+                    </SelectTrigger>
+                    <SelectContent className='bg-white/10 cursor-pointer backdrop-blur-sm border-white/10' >
+                      <div className='flex text-gray-300/80 py-2 gap-2 px-1' onClick={() => handleLogout()} >
+                        <div className='items-center flex '><LogOut className='h-5 w-5' /></div>
+                        <div>logout</div>
+                      </div>
+                    </SelectContent>
+                  </Select>
                 </div>
               </nav>
               {/* sub-section sidebar */}

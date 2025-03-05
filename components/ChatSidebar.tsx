@@ -97,7 +97,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setAc
 
   return (
     <div className="px-4 py-2 space-y-4">
-      <div className="flex w-full items-center justify-between py-3 px-2 cursor-pointer rounded-lg">
+      <div className="flex w-full items-center justify-between py-3 px-2 cursor-default rounded-lg">
         <h2 className="text-white font-semibold">Chat</h2>
         <CreateGroupDialog singleChatData={singleChatData} userId={userId} />
       </div>
@@ -123,7 +123,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setAc
                 setActiveChat(selectedGroupChat)
                 ws.send(JSON.stringify({ type: "join", roomId: group.id }))
               }}
-              className={`w-full flex items-center px-3 py-2 rounded-md hover:bg-white/5 text-gray-300/50 ${activeChat?.id === group.id && "bg-white/10"}  hover:text-white transition-colors duration-200`}
+              className={`w-full flex items-center px-3 py-2 rounded-md hover:bg-white/5 text-gray-300/50 ${activeChat?.id === group.id && "bg-white/10 text-white"}  hover:text-white transition-colors duration-200`}
             >
               <Hash className={`h-4 w-4 mr-2 ${group.unread > 0 ? "text-white" : ""}`} />
               <span className={`flex-1 text-left ${group.unread > 0 ? "text-white" : ""}`}>{group.name}</span>

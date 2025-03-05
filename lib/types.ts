@@ -53,3 +53,9 @@ export const imageSchema = z.object({
 })
 
 export type imageSchemaType = z.infer<typeof imageSchema>
+
+export type FileDataType = {
+  fileName: string,
+  fileSize: number,
+  fileType: string,
+}

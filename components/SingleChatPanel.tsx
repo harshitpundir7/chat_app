@@ -8,6 +8,7 @@ import { ShineBorder } from '@/components/magicui/shine-border';
 import { BorderBeam } from '@/components/border-beam';
 import { Paperclip, SendHorizontal, ChevronLeft, MoreVertical } from 'lucide-react';
 import { UserContext } from '@/app/Provider';
+import FileDialog from './FileDialog';
 
 interface ExtendedUser extends User {
   isOnline: boolean;
@@ -38,6 +39,8 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
   const [messageData, setMessageData] = useState<Message[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const [activeUser, setActiveUser] = useState<ExtendedUser>();
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [fileData, setFileData] = useState<File>();
 
   const scrollToBottom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -85,17 +88,22 @@ const SingleChatPanel: React.FC<ConversationalPanelProps> = ({
     }
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const inputFiles = e.target.files;
     if (!inputFiles) return;
     const file = inputFiles[0];
     const fileSize = file.size / 1000000;
-    console.log(fileSize)
+    if (fileSize > 100) {
+      return;
+    }
+    setFileData(file)
+    setOpenDialog(true)
   }
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-DarkIndigo to-DarkNavy">
       {/* Header */}
+      <FileDialog open={openDialog} file={fileData} setOpen={setOpenDialog} />
       <div className="sticky top-0 z-20 border-b border-white/10 bg-DarkNavy/95 backdrop-blur-md">
         {activeUser ? (
           <motion.div
