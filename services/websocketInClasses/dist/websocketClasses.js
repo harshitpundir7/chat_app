@@ -6,6 +6,7 @@ class websocketClasses {
     constructor(port) {
         const server = new ws_1.WebSocket.Server({ port: port });
         websocketClasses.wss = server;
+        console.log(`server running at ${port}`);
     }
     start() {
         websocketClasses.wss.on("connection", (ws) => this.handleConnection(ws));

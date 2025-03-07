@@ -10,6 +10,7 @@ export class websocketClasses {
   constructor(port: number) {
     const server = new WebSocket.Server({ port: port })
     websocketClasses.wss = server
+    console.log(`server running at ${port}`)
   }
 
   start() {
