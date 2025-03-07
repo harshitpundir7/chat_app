@@ -14,13 +14,16 @@ export class websocketClasses {
   }
 
   start() {
-    websocketClasses.wss.on("connection", (ws) => this.handleConnection(ws))
+    websocketClasses.wss.on("connection", (ws) => {
+      console.log('Ping')
+      ws.send("pong")
+      return this.handleConnection(ws)
+    })
   }
 
   handleConnection(ws: any) {
     ws.on("message", (data: string) => {
       const msg = JSON.parse(data);
-      console.log(msg)
       switch (msg.type) {
         case "connect": this.connectServer(ws, msg.userId);
           break;
