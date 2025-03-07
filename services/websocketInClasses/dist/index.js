@@ -5,5 +5,10 @@ const dotenv_1 = require("dotenv");
 (0, dotenv_1.configDotenv)();
 const port = process.env.PORT;
 console.log(port);
-const server = new websocketClasses_1.websocketClasses(8080);
+let correctPort;
+if (typeof port == "string")
+    correctPort = parseInt(port);
+else
+    correctPort = port;
+const server = new websocketClasses_1.websocketClasses(correctPort);
 server.start();

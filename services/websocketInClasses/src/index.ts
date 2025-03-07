@@ -2,7 +2,10 @@ import { websocketClasses } from "./websocketClasses";
 import { configDotenv } from "dotenv"
 
 configDotenv()
-const port = process.env.PORT
+const port = process.env.PORT!
 console.log(port)
-const server = new websocketClasses(8080);
+let correctPort: number;
+if (typeof port == "string") correctPort = parseInt(port);
+else correctPort = port
+const server = new websocketClasses(correctPort);
 server.start();
