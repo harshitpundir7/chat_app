@@ -73,7 +73,7 @@ const ErrorPage = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Don't worry, it's not you - it's us! Try refreshing the page or going back home.
+          Don&apos;t worry, it&apos;s not you - it&apos;s us! Try refreshing the page or going back home.
         </motion.p>
 
         <div className="flex gap-4 justify-center">

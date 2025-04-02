@@ -17,8 +17,7 @@ import { filterUsers } from "@/lib/actions/filterUsers";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Input } from "@/components/ui/input";
-import CreateGroup from "@/lib/actions/CreateGroup";
-import { TypeOf } from "zod";
+import CreateGroup, { CreateRoom } from "@/lib/actions/CreateGroup";
 
 interface ExtendedChatRoom extends ChatRoom {
   users: ExtendedUser[];
@@ -43,7 +42,7 @@ const slideVariants = {
   })
 };
 
-export function CreateGroupDialog({ singleChatData, userId }: { singleChatData: ExtendedChatRoom[], userId: number }) {
+export function CreateGroupDialog({ singleChatData, userId, setChatsData }: { singleChatData: ExtendedChatRoom[], setChatsData: React.Dispatch<React.SetStateAction<{ groupsData: ChatRoom[]; singleChatData: ChatRoom[] } | undefined>>, userId: number }) {
   const [open, setOpen] = useState(false);
   const [searchResult, setSearchResult] = useState<User[] | null>(null);
   const [selectedUser, setSelectedUser] = useState<number[]>([]);
@@ -83,6 +82,17 @@ export function CreateGroupDialog({ singleChatData, userId }: { singleChatData: 
     setGroupName('');
     setSelectedUser([]);
     setPage([0, 0]);
+  }
+
+  async function handleClick(userId: number) {
+    const newSingleChat: ChatRoom | undefined = await CreateRoom(userId);
+    console.log(newSingleChat)
+    // setChatsData(prev => {
+    //   prev?.singleChatData.push(newSingleChat as ChatRoom)
+    //   return prev
+    // })
+    if (!newSingleChat) return;
+    setOpen(false)
   }
 
   return (
@@ -129,7 +139,7 @@ export function CreateGroupDialog({ singleChatData, userId }: { singleChatData: 
                           <CommandGroup>
                             {searchResult.map((user) => (
                               <CommandItem key={user.id} className="bg-white/10 cursor-pointer text-white mb-2 mt-2" >
-                                <div className="flex items-center mb-2 gap-2 mx-2 " >
+                                <div onClick={() => handleClick(user.id)} className="flex items-center mb-2 gap-2 mx-2 " >
                                   <div>
                                     <Avatar className="border border-white" >
                                       <AvatarImage src={user.avatar || "https://githubusercontent.com"} />

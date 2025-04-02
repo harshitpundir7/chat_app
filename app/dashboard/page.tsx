@@ -135,7 +135,7 @@ const Dashboard = () => {
               </nav>
               {/* sub-section sidebar */}
               <div className='h-screen ' >
-                <ChatSidebar chatsData={chatsData!} ws={ws!} userId={parseInt(session?.user?.id!)} setActiveChat={setActiveChat} activeChat={activeChat!} onlineUsers={onlineUsers} />
+                <ChatSidebar setChatsData={setChatsData} chatsData={chatsData!} ws={ws!} userId={parseInt(session?.user?.id!)} setActiveChat={setActiveChat} activeChat={activeChat!} onlineUsers={onlineUsers} />
               </div>
             </div>
 

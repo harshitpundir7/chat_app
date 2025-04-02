@@ -6,6 +6,7 @@ import { CreateGroupDialog } from "./CreateGroupDialog";
 
 interface ChatSidebarProps {
   chatsData: { groupsData: ChatRoom[]; singleChatData: ChatRoom[] };
+  setChatsData: React.Dispatch<React.SetStateAction<{ groupsData: ChatRoom[]; singleChatData: ChatRoom[] } | undefined>>
   onlineUsers: number[];
   setActiveChat: React.Dispatch<React.SetStateAction<ExtendedChatRoom | undefined>>
   activeChat: ExtendedChatRoom
@@ -21,7 +22,7 @@ interface ExtendedChatRoom extends ChatRoom {
   users: ExtendedUser[];
 }
 
-const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setActiveChat, userId, activeChat, ws }) => {
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, setChatsData, onlineUsers, setActiveChat, userId, activeChat, ws }) => {
   const [groupChat, setGroupChat] = useState<boolean>(false);
   const [singleChat, setSingleChat] = useState<boolean>(false);
   const [updatedChatsData, setUpdatedChatsData] = useState<{ groupsData: ExtendedChatRoom[]; singleChatData: ExtendedChatRoom[]; }>();
@@ -99,7 +100,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ chatsData, onlineUsers, setAc
     <div className="px-4 py-2 space-y-4">
       <div className="flex w-full items-center justify-between py-3 px-2 cursor-default rounded-lg">
         <h2 className="text-white font-semibold">Chat</h2>
-        <CreateGroupDialog singleChatData={singleChatData} userId={userId} />
+        <CreateGroupDialog setChatsData={setChatsData} singleChatData={singleChatData} userId={userId} />
       </div>
 
       {/* Groups Section */}
